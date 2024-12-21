@@ -6,7 +6,7 @@ use rand::rngs::StdRng;
 #[derive(Clone, Debug)]
 pub struct GameState {
     cards: Vec<usize>,
-    history: String,
+    history: Vec<String>,
     player: usize,
 }
 
@@ -17,7 +17,7 @@ impl GameState {
         cards.shuffle(&mut rng);
         GameState {
             cards,
-            history: String::new(),
+            history: Vec::new(),
             player: 0,
         }
     }
@@ -27,37 +27,39 @@ impl GameState {
     }
 
     fn is_terminal(&self) -> bool {
-        self.history == "pbp" ||
-        self.history == "pbb" ||
-        self.history == "pp" ||
-        self.history == "bp" ||
-        self.history == "bb"
+        let history_str = self.history.join("");
+        history_str == "pbp" ||
+        history_str == "pbb" ||
+        history_str == "pp" ||
+        history_str == "bp" ||
+        history_str == "bb"
     }
 
     fn get_payoff(&self, player: usize) -> f64 {
         let opponent = 1 - player;
-        if self.history == "pp" {
+        let history_str = self.history.join("");
+        if history_str == "pp" {
             if self.cards[player] > self.cards[opponent] {
                 1.0
             } else {
                 -1.0
             }
-        } else if self.history == "bp" || self.history == "pbp" {
+        } else if history_str == "bp" || history_str == "pbp" {
             1.0
-        } else if self.history == "bb" || self.history == "pbb"{
+        } else if history_str == "bb" || history_str == "pbb"{
             if self.cards[player] > self.cards[opponent] {
                 2.0
             } else {
                 -2.0
             }
         } else {
-            panic!("Invalid game state: history = {}, cards = {:?}", self.history, self.cards)
+            panic!("Invalid game state: history = {:?}, cards = {:?}", self.history, self.cards)
         }
     }
 
     fn next_state(&self, action: &str) -> GameState {
         let mut next_state = self.clone();
-        next_state.history.push_str(action);
+        next_state.history.push(action.to_string());
         next_state.player = 1 - self.player;
         next_state
     }
@@ -103,7 +105,7 @@ impl CFR {
             return state.get_payoff(player);
         }
 
-        let info_set = format!("{}{}", state.cards[player], state.history);
+        let info_set = format!("{}{}", state.cards[player], state.history.join(""));
         let actions = state.get_legal_actions();
         let strategy = self.get_strategy(&info_set, if player == 0 { p0 } else { p1 });
 
