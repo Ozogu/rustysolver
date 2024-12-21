@@ -1,5 +1,7 @@
 use rand::seq::SliceRandom;
 use rand::rngs::StdRng;
+use crate::action::Action;
+use crate::history::History;
 use crate::player::Player;
 use crate::info_state::InfoState;
 
@@ -17,37 +19,34 @@ impl Kuhn {
         cards.shuffle(&mut rng);
         Kuhn {
             cards,
-            info_state: InfoState::new(),
+            info_state: InfoState::new_empty(),
             player: Player::IP,
         }
     }
 
-    pub fn get_legal_actions(&self) -> Vec<String> {
-        vec!["p".to_string(), "b".to_string()]
-    }
-
-    pub fn is_terminal(&self) -> bool {
-        let info_state_str = self.info_state.to_string();
-        info_state_str == "pbp" ||
-        info_state_str == "pbb" ||
-        info_state_str == "pp" ||
-        info_state_str == "bp" ||
-        info_state_str == "bb"
+    pub fn get_legal_actions(&self) -> Vec<Action> {
+        // At root there will be no history
+        let last = self.info_state.last().unwrap_or(&Action::Check);
+        if last == &Action::Check {
+            vec![Action::Check, Action::Bet(50)]
+        } else { // last == Bet
+            vec![Action::Call, Action::Fold]
+        }
     }
 
     pub fn get_payoff(&self, player: Player) -> f64 {
         let opponent = if player == Player::IP { Player::OOP } else { Player::IP };
-        let info_state_str = self.info_state.to_string();
-        if info_state_str == "pp" {
-            if self.cards[player as usize] > self.cards[opponent as usize] {
+        let actions: Vec<Action> = self.info_state.history().to_vec();
+        if actions == vec![Action::Check, Action::Check] {
+            if self.cards[player.as_usize()] > self.cards[opponent.as_usize()] {
                 1.0
             } else {
                 -1.0
             }
-        } else if info_state_str == "bp" || info_state_str == "pbp" {
+        } else if actions == vec![Action::Bet(50), Action::Fold] || actions == vec![Action::Check, Action::Bet(50), Action::Fold] {
             1.0
-        } else if info_state_str == "bb" || info_state_str == "pbb"{
-            if self.cards[player as usize] > self.cards[opponent as usize] {
+        } else if actions == vec![Action::Bet(50), Action::Call] || actions == vec![Action::Check, Action::Bet(50), Action::Call] {
+            if self.cards[player.as_usize()] > self.cards[opponent.as_usize()] {
                 2.0
             } else {
                 -2.0
@@ -57,15 +56,15 @@ impl Kuhn {
         }
     }
 
-    pub fn next_state(&self, action: &str) -> Kuhn {
+    pub fn next_state(&self, action: Action) -> Kuhn {
         let mut next_state = self.clone();
-        next_state.info_state.push(action.to_string());
+        next_state.info_state.push(action);
         next_state.player = if self.player == Player::IP { Player::OOP } else { Player::IP };
         next_state
     }
 
-    pub fn get_history(&self) -> Vec<String> {
-        self.info_state.clone().into_vec()
+    pub fn get_history(&self) -> History {
+        self.info_state.history()
     }
 
     pub fn get_cards(&self) -> Vec<usize> {
@@ -73,10 +72,6 @@ impl Kuhn {
     }
 
     pub fn get_player_cards(&self) -> usize {
-        self.cards[self.player as usize]
-    }
-
-    pub fn get_info_state_str(&self) -> Vec<String> {
-        self.info_state.clone().into_vec()
+        self.cards[self.player.as_usize()]
     }
 }

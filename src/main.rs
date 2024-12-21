@@ -1,6 +1,5 @@
 use rustysolver::cfr::CFR;
 use rustysolver::kuhn::Kuhn;
-use rand::seq::SliceRandom;
 use rand::rngs::StdRng;
 use rand::SeedableRng;
 

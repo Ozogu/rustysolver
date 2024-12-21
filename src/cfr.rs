@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 use rand::SeedableRng;
 use rand::rngs::StdRng;
+use crate::info_state::InfoState;
 use crate::kuhn::Kuhn;
 use crate::player::Player;
 
@@ -21,8 +22,9 @@ impl CFR {
         }
     }
 
-    pub fn get_strategy(&mut self, info_set: &str, realization_weight: f64) -> Vec<f64> {
-        let actions = self.regrets.entry(info_set.to_string()).or_insert(vec![0.0; 2]);
+    pub fn get_strategy(&mut self, info_state: &InfoState, realization_weight: f64) -> Vec<f64> {
+        let info_set = info_state.to_string();
+        let actions = self.regrets.entry(info_set.clone()).or_insert(vec![0.0; 2]);
         let mut strategy = vec![0.0; actions.len()];
         let mut normalizing_sum = 0.0;
 
@@ -37,26 +39,26 @@ impl CFR {
             } else {
                 strategy[i] = 1.0 / strategy.len() as f64;
             }
-            self.strategy_sum.entry(info_set.to_string()).or_insert(vec![0.0; 2])[i] += realization_weight * strategy[i];
+            self.strategy_sum.entry(info_set.clone()).or_insert(vec![0.0; 2])[i] += realization_weight * strategy[i];
         }
 
         strategy
     }
 
     pub fn cfr(&mut self, state: &Kuhn, player: Player, p0: f64, p1: f64) -> f64 {
-        if state.is_terminal() {
+        if state.get_history().is_terminal() {
             return state.get_payoff(player);
         }
 
-        let info_set = format!("{}{}", state.get_player_cards(), state.get_history().join(""));
+        let info_state = InfoState::new(vec![state.get_player_cards()], state.get_history());
         let actions = state.get_legal_actions();
-        let strategy = self.get_strategy(&info_set, if player == Player::IP { p0 } else { p1 });
+        let strategy = self.get_strategy(&info_state, if player == Player::IP { p0 } else { p1 });
 
         let mut util = vec![0.0; actions.len()];
         let mut node_util = 0.0;
 
         for (i, action) in actions.iter().enumerate() {
-            let next_state = state.next_state(action);
+            let next_state = state.next_state(action.clone());
             util[i] = if player == Player::IP {
                 -self.cfr(&next_state, Player::OOP, p0 * strategy[i], p1)
             } else {
@@ -67,7 +69,7 @@ impl CFR {
 
         for (i, _) in actions.iter().enumerate() {
             let regret = util[i] - node_util;
-            self.regrets.entry(info_set.clone()).or_insert(vec![0.0; actions.len()])[i] += if player == Player::IP { p1 } else { p0 } * regret;
+            self.regrets.entry(info_state.to_string()).or_insert(vec![0.0; actions.len()])[i] += if player == Player::IP { p1 } else { p0 } * regret;
         }
 
         node_util

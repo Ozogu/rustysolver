@@ -5,3 +5,4 @@ pub mod node;
 pub mod action;
 pub mod player;
 pub mod info_state;
+pub mod history;

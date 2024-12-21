@@ -1,30 +1,40 @@
+use crate::action::Action;
+use crate::history::History;
+
 #[derive(Debug, Clone)]
 pub struct InfoState {
-    info_state: Vec<String>,
+    cards: Vec<usize>,
+    history: History,
 }
 
 impl InfoState {
-    pub fn new() -> Self {
+    pub fn new(cards: Vec<usize>, history: History) -> Self {
         InfoState {
-            info_state: Vec::new(),
+            cards,
+            history,
         }
     }
 
-    pub fn push(&mut self, action: String) {
-        self.info_state.push(action);
+    pub fn new_empty() -> Self {
+        InfoState {
+            cards: Vec::new(),
+            history: History::new(),
+        }
+    }
+
+    pub fn push(&mut self, action: Action) {
+        self.history.push(action);
+    }
+
+    pub fn history(&self) -> History {
+        self.history.clone()
     }
 
     pub fn to_string(&self) -> String {
-        self.info_state.join("")
+        format!("{:?}{:?}", self.cards, self.history)
     }
 
-    pub fn clone(&self) -> Self {
-        InfoState {
-            info_state: self.info_state.clone(),
-        }
-    }
-
-    pub fn into_vec(self) -> Vec<String> {
-        self.info_state
+    pub fn last(&self) -> Option<&Action> {
+        self.history.last()
     }
 }
