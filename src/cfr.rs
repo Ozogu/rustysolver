@@ -3,7 +3,7 @@ use rand::SeedableRng;
 use rand::rngs::StdRng;
 use crate::info_state::InfoState;
 use crate::kuhn::Kuhn;
-use crate::player::Player;
+use crate::node::Node;
 
 pub struct CFR {
     game: Kuhn,
@@ -45,31 +45,27 @@ impl CFR {
         strategy
     }
 
-    pub fn cfr(&mut self, state: &Kuhn, player: Player, p0: f64, p1: f64) -> f64 {
-        if state.get_history().is_terminal() {
-            return state.get_payoff(player);
+    pub fn cfr(&mut self, node: Node) -> f64 {
+        if node.is_terminal() {
+            return self.game.get_payoff(&node);
         }
+        
+        let info_state = &node.info_state;
+        let actions = self.game.get_legal_actions(info_state);
+        let strategy = self.get_strategy(info_state, node.player_reach_prob());
 
-        let info_state = InfoState::new(vec![state.get_player_cards()], state.get_history());
-        let actions = state.get_legal_actions();
-        let strategy = self.get_strategy(&info_state, if player == Player::IP { p0 } else { p1 });
-
-        let mut util = vec![0.0; actions.len()];
+        let mut action_util = vec![0.0; actions.len()];
         let mut node_util = 0.0;
 
         for (i, action) in actions.iter().enumerate() {
-            let next_state = state.next_state(action.clone());
-            util[i] = if player == Player::IP {
-                -self.cfr(&next_state, Player::OOP, p0 * strategy[i], p1)
-            } else {
-                -self.cfr(&next_state, Player::IP, p0, p1 * strategy[i])
-            };
-            node_util += strategy[i] * util[i];
+            let next_node = node.next_node(action.clone(), strategy[i]);
+            action_util[i] = -self.cfr(next_node);
+            node_util += strategy[i] * action_util[i];
         }
 
         for (i, _) in actions.iter().enumerate() {
-            let regret = util[i] - node_util;
-            self.regrets.entry(info_state.to_string()).or_insert(vec![0.0; actions.len()])[i] += if player == Player::IP { p1 } else { p0 } * regret;
+            let regret = action_util[i] - node_util;
+            self.regrets.entry(info_state.to_string()).or_insert(vec![0.0; actions.len()])[i] += node.opponent_reach_prob() * regret;
         }
 
         node_util
@@ -78,8 +74,8 @@ impl CFR {
     pub fn train(&mut self, iterations: usize) -> f64 {
         let mut ev = 0.0;
         for _ in 0..iterations {
-            let state = Kuhn::new(&mut self.rng);
-            ev += self.cfr(&state, Player::IP, 1.0, 1.0);
+            let cards = self.game.shuffled_cards(&mut self.rng);
+            ev += self.cfr(Node::new(&cards));
         }
 
         return ev / iterations as f64;
