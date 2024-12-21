@@ -11,4 +11,11 @@ impl Player {
             Player::OOP => 1,
         }
     }   
+
+    pub fn opponent(&self) -> Player {
+        match self {
+            Player::IP => Player::OOP,
+            Player::OOP => Player::IP,
+        }
+    }
 }

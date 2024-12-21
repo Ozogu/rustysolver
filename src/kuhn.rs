@@ -35,7 +35,7 @@ impl Kuhn {
     }
 
     pub fn get_payoff(&self, player: Player) -> f64 {
-        let opponent = if player == Player::IP { Player::OOP } else { Player::IP };
+        let opponent = player.opponent();
         let actions: Vec<Action> = self.info_state.history().to_vec();
         if actions == vec![Action::Check, Action::Check] {
             if self.cards[player.as_usize()] > self.cards[opponent.as_usize()] {
@@ -59,7 +59,7 @@ impl Kuhn {
     pub fn next_state(&self, action: Action) -> Kuhn {
         let mut next_state = self.clone();
         next_state.info_state.push(action);
-        next_state.player = if self.player == Player::IP { Player::OOP } else { Player::IP };
+        next_state.player = self.player.opponent();
         next_state
     }
 
