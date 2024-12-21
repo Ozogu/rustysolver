@@ -1,7 +1,12 @@
 use rustysolver::cfr::CFR;
+use rustysolver::kuhn::Kuhn;
+use rand::seq::SliceRandom;
+use rand::rngs::StdRng;
+use rand::SeedableRng;
 
 fn main() {
-    let mut cfr = CFR::new();
+    let mut rng = StdRng::seed_from_u64(0);    
+    let mut cfr = CFR::new(Kuhn::new(&mut rng));
     let ev = cfr.train(100000);
     println!("Expected value: {}", ev);
 

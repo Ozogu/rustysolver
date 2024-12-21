@@ -4,14 +4,16 @@ use rand::rngs::StdRng;
 use crate::kuhn::Kuhn;
 
 pub struct CFR {
+    game: Kuhn,
     regrets: HashMap<String, Vec<f64>>,
     strategy_sum: HashMap<String, Vec<f64>>,
     rng: StdRng,
 }
 
 impl CFR {
-    pub fn new() -> Self {
+    pub fn new(game: Kuhn) -> Self {
         CFR {
+            game,
             regrets: HashMap::new(),
             strategy_sum: HashMap::new(),
             rng: StdRng::seed_from_u64(0),
