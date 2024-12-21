@@ -1,6 +1,17 @@
 use crate::suit::Suit;
 
-struct Card {
-    suit: Suit,
-    rank: u8,
+#[derive(Clone, Debug, PartialEq, PartialOrd)]
+pub struct Card {
+    pub suit: Suit,
+    pub rank: u8,
+}
+
+impl Card {
+    pub fn new(rank: u8, suit: Suit) -> Self {
+        Card { rank, suit }
+    }
+
+    pub fn new_with_rank(rank: u8) -> Self {
+        Card { rank, suit: Suit::Diamonds }
+    }
 }

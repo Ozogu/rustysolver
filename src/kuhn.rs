@@ -1,26 +1,43 @@
-use rand::seq::SliceRandom;
 use rand::rngs::StdRng;
 use crate::action::Action;
+use crate::hole_cards::HoleCards;
 use crate::info_state::InfoState;
 use crate::node::Node;
+use crate::deck::Deck;
+use crate::card::Card;
+use crate::suit::Suit;
 
 #[derive(Clone, Debug)]
-pub struct Kuhn {
-}
+pub struct Kuhn {}
 
 impl Kuhn {
     pub fn new() -> Self {
         Kuhn {}
     }
 
-    pub fn deck(&self) -> Vec<usize> {
-        vec![0, 1, 2]
-    }
+    pub fn deck(&self) -> Deck {
+        Deck::new_from_cards(vec![
+            Card::new(1, Suit::Diamonds),
+            Card::new(2, Suit::Diamonds),
+            Card::new(3, Suit::Diamonds),
+        ])
+    } 
 
-    pub fn shuffled_cards(&self, rng: &mut StdRng) -> Vec<usize> {
+    pub fn shuffled_cards(&self, rng: &mut StdRng) -> Deck {
         let mut cards = self.deck();
         cards.shuffle(rng);
         cards
+    }
+
+    pub fn deal(&self, rng: &mut StdRng) -> (HoleCards, HoleCards, Deck) {
+        let mut cards = self.shuffled_cards(rng);
+        let card1 = cards.draw().unwrap();
+        let card2 = cards.draw().unwrap();
+
+        let ip_cards = HoleCards::new_with_rank(card1.rank);
+        let oop_cards = HoleCards::new_with_rank(card2.rank);
+    
+        (ip_cards, oop_cards, cards)
     }
 
     pub fn get_legal_actions(&self, info_state: &InfoState) -> Vec<Action> {
@@ -62,15 +79,9 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_kuhn_deck() {
-        let kuhn = Kuhn::new();
-        assert_eq!(kuhn.deck(), vec![0, 1, 2]);
-    }
-
-    #[test]
     fn test_legal_actions_at_root() {
         let kuhn = Kuhn::new();
-        let info_state = InfoState::new(0);
+        let info_state = InfoState::new(HoleCards::new_with_rank(0));
         let actions = kuhn.get_legal_actions(&info_state);
         assert_eq!(actions, vec![Action::Check, Action::Bet(50)]);
     }
@@ -78,7 +89,7 @@ mod tests {
     #[test]
     fn test_legal_actions_after_check() {
         let kuhn = Kuhn::new();
-        let info_state = InfoState::new(0).next_info_state(Action::Check, 0);
+        let info_state = InfoState::new(HoleCards::new_with_rank(0)).next_info_state(Action::Check, HoleCards::new_with_rank(0));
         let actions = kuhn.get_legal_actions(&info_state);
         assert_eq!(actions, vec![Action::Check, Action::Bet(50)]);
     }
@@ -86,13 +97,8 @@ mod tests {
     #[test]
     fn test_legal_actions_after_bet() {
         let kuhn = Kuhn::new();
-        let info_state = InfoState::new(0).next_info_state(Action::Bet(50), 0);
+        let info_state = InfoState::new(HoleCards::new_with_rank(0)).next_info_state(Action::Bet(50), HoleCards::new_with_rank(0));
         let actions = kuhn.get_legal_actions(&info_state);
         assert_eq!(actions, vec![Action::Call, Action::Fold]);
-    }
-
-    #[test]
-    fn test_payoff_after_check_check() {
-        
     }
 }

@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use crate::hole_cards::HoleCards;
 use crate::player::Player;
 use crate::info_state::InfoState;
 use crate::action::Action;
@@ -7,17 +8,15 @@ use crate::action::Action;
 pub struct Node {
     pub info_state: InfoState,
     pub reach_prob: HashMap<Player, f64>,
-    pub cards: HashMap<Player, usize>,
+    pub cards: HashMap<Player, HoleCards>,
 }
 
 impl Node {
-    pub fn new(cards: &Vec<usize>) -> Self {
-        let ip_card = *cards.get(0).unwrap_or(&0);
-        let oop_card = *cards.get(1).unwrap_or(&0);
+    pub fn new(ip_cards: HoleCards, oop_cards: HoleCards) -> Node {
         Node {
-            info_state: InfoState::new(ip_card),
+            info_state: InfoState::new(ip_cards.clone()),
             reach_prob: HashMap::from([(Player::IP, 1.0), (Player::OOP, 1.0)]),
-            cards: HashMap::from([(Player::IP, ip_card), (Player::OOP, oop_card)]),
+            cards: HashMap::from([(Player::IP, ip_cards), (Player::OOP, oop_cards)]),
         }
     }
 
@@ -37,12 +36,12 @@ impl Node {
         self.reach_prob[&self.player().opponent()]
     }
 
-    pub fn player_cards(&self) -> usize {
-        self.cards[&self.player()]
+    pub fn player_cards(&self) -> HoleCards {
+        self.cards[&self.player()].clone()
     }
 
-    pub fn opponent_cards(&self) -> usize {
-        self.cards[&self.player().opponent()]
+    pub fn opponent_cards(&self) -> HoleCards {
+        self.cards[&self.player().opponent()].clone()
     }
 
     pub fn next_node(&self, action: Action, action_prob: f64) -> Node {
@@ -59,14 +58,14 @@ mod tests {
 
     #[test]
     fn test_new() {
-        let node = Node::new(&Vec::new());
+        let node = Node::new(HoleCards::new_with_rank(1), HoleCards::new_with_rank(2));
         assert_eq!(node.reach_prob[&Player::IP], 1.0);
         assert_eq!(node.reach_prob[&Player::OOP], 1.0);
     }
 
     #[test]
     fn test_reach_prob() {
-        let node = Node::new(&Vec::new());
+        let node = Node::new(HoleCards::new_with_rank(1), HoleCards::new_with_rank(2));
         assert_eq!(node.player_reach_prob(), 1.0);
         assert_eq!(node.opponent_reach_prob(), 1.0);
 
@@ -82,8 +81,7 @@ mod tests {
 
     #[test]
     fn test_next_node() {
-        let cards = &vec![1, 2, 3];
-        let node = Node::new(cards);
+        let node = Node::new(HoleCards::new_with_rank(1), HoleCards::new_with_rank(2));
         let next_node = node.next_node(Action::Check, 0.5);
         assert_eq!(next_node.reach_prob[&Player::IP], 0.5);
         assert_eq!(next_node.reach_prob[&Player::OOP], 1.0);
@@ -91,13 +89,14 @@ mod tests {
 
     #[test]
     fn test_player_cards() {
-        let cards = &vec![1, 2, 3];
-        let node = Node::new(cards);
-        assert_eq!(node.player_cards(), 1);
-        assert_eq!(node.opponent_cards(), 2);
+        let ip_cards = HoleCards::new_with_rank(1);
+        let oop_cards = HoleCards::new_with_rank(2);
+        let node = Node::new(ip_cards.clone(), oop_cards.clone());
+        assert_eq!(node.player_cards(), ip_cards);
+        assert_eq!(node.opponent_cards(), oop_cards);
 
         let next_node = node.next_node(Action::Check, 1.0);
-        assert_eq!(next_node.player_cards(), 2);
-        assert_eq!(next_node.opponent_cards(), 1);
+        assert_eq!(next_node.player_cards(), oop_cards);
+        assert_eq!(next_node.opponent_cards(), ip_cards);
     }
 }

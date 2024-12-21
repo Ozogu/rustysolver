@@ -8,3 +8,5 @@ pub mod info_state;
 pub mod history;
 pub mod card;
 pub mod suit;
+pub mod deck;
+pub mod hole_cards;
