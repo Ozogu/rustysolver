@@ -9,6 +9,6 @@ fn test_kuhn_poker_ev() {
     let ev_diff = (ev - ideal_ev).abs();
     
     debug_assert!(ev_diff < 0.0011, 
-        "Expected value: {:.4}, Ideal expected value: {:.4}, Difference: {:.4}",
+        "EV: {:.4}, Ideal: {:.4}, Diff: {:.4}",
         ev, ideal_ev, ev_diff);
 }

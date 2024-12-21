@@ -1,6 +1,6 @@
 use crate::action::Action;
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct History {
     history: Vec<Action>,
 }
