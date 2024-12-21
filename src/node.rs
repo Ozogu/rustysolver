@@ -7,13 +7,17 @@ use crate::action::Action;
 pub struct Node {
     pub info_state: InfoState,
     pub reach_prob: HashMap<Player, f64>,
+    pub cards: HashMap<Player, usize>,
 }
 
 impl Node {
-    pub fn new(cards: Vec<usize>) -> Self {
+    pub fn new(cards: &Vec<usize>) -> Self {
+        let ip_card = *cards.get(0).unwrap_or(&0);
+        let oop_card = *cards.get(1).unwrap_or(&0);
         Node {
-            info_state: InfoState::new(cards),
+            info_state: InfoState::new(ip_card),
             reach_prob: HashMap::from([(Player::IP, 1.0), (Player::OOP, 1.0)]),
+            cards: HashMap::from([(Player::IP, ip_card), (Player::OOP, oop_card)]),
         }
     }
 
@@ -33,9 +37,17 @@ impl Node {
         self.reach_prob[&self.player().opponent()]
     }
 
+    pub fn player_cards(&self) -> usize {
+        self.cards[&self.player()]
+    }
+
+    pub fn opponent_cards(&self) -> usize {
+        self.cards[&self.player().opponent()]
+    }
+
     pub fn next_node(&self, action: Action, action_prob: f64) -> Node {
         let mut next_node: Node = self.clone();
-        next_node.info_state = next_node.info_state.next_info_state(action);
+        next_node.info_state = next_node.info_state.next_info_state(action, self.opponent_cards());
         next_node.reach_prob.insert(self.player(), self.player_reach_prob() * action_prob);
         next_node
     }
@@ -47,14 +59,14 @@ mod tests {
 
     #[test]
     fn test_new() {
-        let node = Node::new(Vec::new());
+        let node = Node::new(&Vec::new());
         assert_eq!(node.reach_prob[&Player::IP], 1.0);
         assert_eq!(node.reach_prob[&Player::OOP], 1.0);
     }
 
     #[test]
     fn test_reach_prob() {
-        let node = Node::new(Vec::new());
+        let node = Node::new(&Vec::new());
         assert_eq!(node.player_reach_prob(), 1.0);
         assert_eq!(node.opponent_reach_prob(), 1.0);
 
@@ -70,10 +82,22 @@ mod tests {
 
     #[test]
     fn test_next_node() {
-        let cards = vec![1, 2, 3];
+        let cards = &vec![1, 2, 3];
         let node = Node::new(cards);
         let next_node = node.next_node(Action::Check, 0.5);
         assert_eq!(next_node.reach_prob[&Player::IP], 0.5);
         assert_eq!(next_node.reach_prob[&Player::OOP], 1.0);
+    }
+
+    #[test]
+    fn test_player_cards() {
+        let cards = &vec![1, 2, 3];
+        let node = Node::new(cards);
+        assert_eq!(node.player_cards(), 1);
+        assert_eq!(node.opponent_cards(), 2);
+
+        let next_node = node.next_node(Action::Check, 1.0);
+        assert_eq!(next_node.player_cards(), 2);
+        assert_eq!(next_node.opponent_cards(), 1);
     }
 }
