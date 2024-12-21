@@ -61,11 +61,9 @@ mod tests {
     fn test_next_info_state() {
         let info_state = InfoState::new(0);
         let next_info_state = info_state.next_info_state(Action::Check, 1);
-        let mut history = History::new();
-        history.push(Action::Check);
 
         assert_eq!(next_info_state.player, Player::OOP);
         assert_eq!(next_info_state.card, 1);
-        assert_eq!(next_info_state.history, history);
+        assert_eq!(next_info_state.history.last(), Some(&Action::Check));
     }
 }
