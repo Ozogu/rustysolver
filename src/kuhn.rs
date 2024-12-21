@@ -1,32 +1,29 @@
 use rand::seq::SliceRandom;
 use rand::rngs::StdRng;
 use crate::action::Action;
-use crate::history::History;
-use crate::player::Player;
 use crate::info_state::InfoState;
 
 #[derive(Clone, Debug)]
 pub struct Kuhn {
-    cards: Vec<usize>,
-    info_state: InfoState,
-    player: Player,
+    cards: Vec<usize>
 }
 
 impl Kuhn {
-    pub fn new(rng: &mut StdRng) -> Self {
-        let mut cards = vec![0, 1, 2];
-        let mut rng = rng;
-        cards.shuffle(&mut rng);
+    pub fn new() -> Self {
         Kuhn {
-            cards,
-            info_state: InfoState::new_empty(),
-            player: Player::IP,
+            cards: vec![0, 1, 2],
         }
     }
 
-    pub fn get_legal_actions(&self) -> Vec<Action> {
+    pub fn shuffled_cards(&self, rng: &mut StdRng) -> Vec<usize> {
+        let mut cards = self.cards.clone();
+        cards.shuffle(rng);
+        cards
+    }
+
+    pub fn get_legal_actions(&self, info_state: &InfoState) -> Vec<Action> {
         // At root there will be no history
-        let last = self.info_state.last().unwrap_or(&Action::Check);
+        let last = info_state.last().unwrap_or(&Action::Check);
         if last == &Action::Check {
             vec![Action::Check, Action::Bet(50)]
         } else { // last == Bet
@@ -34,9 +31,10 @@ impl Kuhn {
         }
     }
 
-    pub fn get_payoff(&self, player: Player) -> f64 {
+    pub fn get_payoff(&self, info_state: &InfoState) -> f64 {
+        let player = info_state.player();
         let opponent = player.opponent();
-        let actions: Vec<Action> = self.info_state.history().to_vec();
+        let actions: Vec<Action> = info_state.history().to_vec();
         if actions == vec![Action::Check, Action::Check] {
             if self.cards[player.as_usize()] > self.cards[opponent.as_usize()] {
                 1.0
@@ -52,26 +50,7 @@ impl Kuhn {
                 -2.0
             }
         } else {
-            panic!("Invalid game state: history = {:?}, cards = {:?}", self.info_state, self.cards)
+            panic!("Invalid game state: history = {:?}, cards = {:?}", actions, self.cards);
         }
-    }
-
-    pub fn next_state(&self, action: Action) -> Kuhn {
-        let mut next_state = self.clone();
-        next_state.info_state.push(action);
-        next_state.player = self.player.opponent();
-        next_state
-    }
-
-    pub fn get_history(&self) -> History {
-        self.info_state.history()
-    }
-
-    pub fn get_cards(&self) -> Vec<usize> {
-        self.cards.clone()
-    }
-
-    pub fn get_player_cards(&self) -> usize {
-        self.cards[self.player.as_usize()]
     }
 }
