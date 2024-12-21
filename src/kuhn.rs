@@ -1,5 +1,4 @@
 use rand::seq::SliceRandom;
-use rand::SeedableRng;
 use rand::rngs::StdRng;
 
 #[derive(Clone, Debug)]
@@ -10,14 +9,14 @@ pub struct KuhnPoker {
 }
 
 impl KuhnPoker {
-    pub fn new() -> Self {
+    pub fn new(rng: &mut StdRng) -> Self {
         let mut cards = vec![0, 1, 2];
-        let mut rng = StdRng::seed_from_u64(0);
+        let mut rng = rng;
         cards.shuffle(&mut rng);
         KuhnPoker {
             cards,
             history: Vec::new(),
-            player: 0,
+            player: 0
         }
     }
 
@@ -69,5 +68,9 @@ impl KuhnPoker {
 
     pub fn get_cards(&self) -> Vec<usize> {
         self.cards.clone()
+    }
+
+    pub fn print_deck(&self) {
+        println!("Deck: {:?}", self.cards);
     }
 }

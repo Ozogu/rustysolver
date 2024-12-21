@@ -2,11 +2,11 @@ use std::collections::HashMap;
 use rand::SeedableRng;
 use rand::rngs::StdRng;
 use crate::kuhn::KuhnPoker;
-use rand::seq::SliceRandom;
 
 pub struct CFR {
     regrets: HashMap<String, Vec<f64>>,
     strategy_sum: HashMap<String, Vec<f64>>,
+    rng: StdRng,
 }
 
 impl CFR {
@@ -14,6 +14,7 @@ impl CFR {
         CFR {
             regrets: HashMap::new(),
             strategy_sum: HashMap::new(),
+            rng: StdRng::seed_from_u64(0),
         }
     }
 
@@ -71,10 +72,8 @@ impl CFR {
 
     pub fn train(&mut self, iterations: usize) -> f64 {
         let mut ev = 0.0;
-        let mut rng = StdRng::seed_from_u64(0);
         for _ in 0..iterations {
-            let mut state = KuhnPoker::new();
-            state.cards.shuffle(&mut rng);
+            let state = KuhnPoker::new(&mut self.rng);
             ev += self.cfr(&state, 0, 1.0, 1.0, 0);
         }
 
