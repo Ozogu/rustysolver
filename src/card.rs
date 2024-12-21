@@ -1,4 +1,6 @@
+use crate::suit::Suit;
+
 struct Card {
     suit: Suit,
-    rank: Rank,
+    rank: u8,
 }

@@ -1,4 +1,4 @@
-enum Suit {
+pub enum Suit {
     Spades,
     Hearts,
     Diamonds,
