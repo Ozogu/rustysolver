@@ -6,3 +6,5 @@ pub mod action;
 pub mod player;
 pub mod info_state;
 pub mod history;
+pub mod card;
+pub mod suit;
