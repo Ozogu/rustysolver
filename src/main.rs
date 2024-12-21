@@ -1,15 +1,11 @@
 use rustysolver::cfr::CFR;
 use rustysolver::kuhn::Kuhn;
-use rand::rngs::StdRng;
-use rand::SeedableRng;
 
 fn main() {
-    let mut rng = StdRng::seed_from_u64(0);    
-    let mut cfr = CFR::new(Kuhn::new(&mut rng));
+    let mut cfr = CFR::new(Kuhn::new());
     let ev = cfr.train(100000);
     println!("Expected value: {}", ev);
 
-    // Example usage
     for card in 0..3 {
         for history in ["", "p", "b", "pp", "bp", "bb"].iter() {
             let info_set = format!("{}{}", card, history);
@@ -18,8 +14,7 @@ fn main() {
                 let avg_strategy = avg_strategy.unwrap();
                 println!("Average strategy for {}: [{:.2}, {:.2}]",
                     info_set, avg_strategy[0], avg_strategy[1]);
-            }
-        
+            }        
         }
     }
 }
