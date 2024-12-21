@@ -45,3 +45,75 @@ impl History {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_new() {
+        let history = History::new();
+        assert_eq!(history.history, vec![]);
+    }
+
+    #[test]
+    fn test_is_empty_terminal() {
+        let history = History::new();
+        assert_eq!(history.is_terminal(), false);
+    }
+
+    #[test]
+    fn test_is_single_action_terminal() {
+        let mut history = History::new();
+        history.push(Action::Check);
+        assert_eq!(history.is_terminal(), false);
+    }
+
+    #[test]
+    fn test_is_xx_terminal() {
+        let mut history = History::new();
+        history.push(Action::Check);
+        history.push(Action::Check);
+        assert_eq!(history.is_terminal(), true);
+    }
+
+    #[test]
+    fn test_is_fold_terminal() {
+        let mut history = History::new();
+        history.push(Action::Fold);
+        history.push(Action::Fold);
+        assert_eq!(history.is_terminal(), true);
+    }
+
+    #[test]
+    fn test_is_call_terminal() {
+        let mut history = History::new();
+        history.push(Action::Fold);
+        history.push(Action::Call);
+        assert_eq!(history.is_terminal(), true);
+    }
+
+    #[test]
+    fn test_is_bet_terminal() {
+        let mut history = History::new();
+        history.push(Action::Fold);
+        history.push(Action::Bet(50));
+        assert_eq!(history.is_terminal(), false);
+    }
+
+    #[test]
+    fn test_is_check_terminal() {
+        let mut history = History::new();
+        history.push(Action::Fold);
+        history.push(Action::Check);
+        assert_eq!(history.is_terminal(), false);
+    }
+
+    #[test]
+    fn test_is_raise_terminal() {
+        let mut history = History::new();
+        history.push(Action::Fold);
+        history.push(Action::Raise(50));
+        assert_eq!(history.is_terminal(), false);
+    }
+}
