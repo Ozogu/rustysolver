@@ -1,8 +1,8 @@
-mod cfr;
+use rustysolver::cfr::CFR;
 
 fn main() {
-    let mut cfr = cfr::CFR::new();
-    let ev = cfr.train(100000);
+    let mut cfr = CFR::new();
+    let ev = cfr.train(12000);
     println!("Expected value: {}", ev);
 
     // Example usage
