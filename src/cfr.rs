@@ -2,6 +2,7 @@ use std::collections::HashMap;
 use rand::SeedableRng;
 use rand::rngs::StdRng;
 use crate::kuhn::Kuhn;
+use crate::player::Player;
 
 pub struct CFR {
     game: Kuhn,
@@ -42,31 +43,31 @@ impl CFR {
         strategy
     }
 
-    pub fn cfr(&mut self, state: &Kuhn, player: usize, p0: f64, p1: f64) -> f64 {
+    pub fn cfr(&mut self, state: &Kuhn, player: Player, p0: f64, p1: f64) -> f64 {
         if state.is_terminal() {
             return state.get_payoff(player);
         }
 
         let info_set = format!("{}{}", state.get_player_cards(), state.get_history().join(""));
         let actions = state.get_legal_actions();
-        let strategy = self.get_strategy(&info_set, if player == 0 { p0 } else { p1 });
+        let strategy = self.get_strategy(&info_set, if player == Player::IP { p0 } else { p1 });
 
         let mut util = vec![0.0; actions.len()];
         let mut node_util = 0.0;
 
         for (i, action) in actions.iter().enumerate() {
             let next_state = state.next_state(action);
-            util[i] = if player == 0 {
-                -self.cfr(&next_state, 1, p0 * strategy[i], p1)
+            util[i] = if player == Player::IP {
+                -self.cfr(&next_state, Player::OOP, p0 * strategy[i], p1)
             } else {
-                -self.cfr(&next_state, 0, p0, p1 * strategy[i])
+                -self.cfr(&next_state, Player::IP, p0, p1 * strategy[i])
             };
             node_util += strategy[i] * util[i];
         }
 
         for (i, _) in actions.iter().enumerate() {
             let regret = util[i] - node_util;
-            self.regrets.entry(info_set.clone()).or_insert(vec![0.0; actions.len()])[i] += if player == 0 { p1 } else { p0 } * regret;
+            self.regrets.entry(info_set.clone()).or_insert(vec![0.0; actions.len()])[i] += if player == Player::IP { p1 } else { p0 } * regret;
         }
 
         node_util
@@ -76,7 +77,7 @@ impl CFR {
         let mut ev = 0.0;
         for _ in 0..iterations {
             let state = Kuhn::new(&mut self.rng);
-            ev += self.cfr(&state, 0, 1.0, 1.0);
+            ev += self.cfr(&state, Player::IP, 1.0, 1.0);
         }
 
         return ev / iterations as f64;

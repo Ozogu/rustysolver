@@ -1,11 +1,12 @@
 use rand::seq::SliceRandom;
 use rand::rngs::StdRng;
+use crate::player::Player;
 
 #[derive(Clone, Debug)]
 pub struct Kuhn {
     cards: Vec<usize>,
     history: Vec<String>,
-    player: usize,
+    player: Player,
 }
 
 impl Kuhn {
@@ -16,7 +17,7 @@ impl Kuhn {
         Kuhn {
             cards,
             history: Vec::new(),
-            player: 0
+            player: Player::IP,
         }
     }
 
@@ -33,11 +34,11 @@ impl Kuhn {
         history_str == "bb"
     }
 
-    pub fn get_payoff(&self, player: usize) -> f64 {
-        let opponent = 1 - player;
+    pub fn get_payoff(&self, player: Player) -> f64 {
+        let opponent = if player == Player::IP { Player::OOP } else { Player::IP };
         let history_str = self.history.join("");
         if history_str == "pp" {
-            if self.cards[player] > self.cards[opponent] {
+            if self.cards[player as usize] > self.cards[opponent as usize] {
                 1.0
             } else {
                 -1.0
@@ -45,7 +46,7 @@ impl Kuhn {
         } else if history_str == "bp" || history_str == "pbp" {
             1.0
         } else if history_str == "bb" || history_str == "pbb"{
-            if self.cards[player] > self.cards[opponent] {
+            if self.cards[player as usize] > self.cards[opponent as usize] {
                 2.0
             } else {
                 -2.0
@@ -58,7 +59,7 @@ impl Kuhn {
     pub fn next_state(&self, action: &str) -> Kuhn {
         let mut next_state = self.clone();
         next_state.history.push(action.to_string());
-        next_state.player = 1 - self.player;
+        next_state.player = if self.player == Player::IP { Player::OOP } else { Player::IP };
         next_state
     }
 
@@ -71,7 +72,7 @@ impl Kuhn {
     }
 
     pub fn get_player_cards(&self) -> usize {
-        self.cards[self.player]
+        self.cards[self.player as usize]
     }
 
     pub fn get_history_str(&self) -> Vec<String> {
