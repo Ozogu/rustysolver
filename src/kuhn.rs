@@ -3,8 +3,8 @@ use rand::rngs::StdRng;
 
 #[derive(Clone, Debug)]
 pub struct KuhnPoker {
-    pub cards: Vec<usize>,
-    pub history: Vec<String>,
+    cards: Vec<usize>,
+    history: Vec<String>,
     player: usize,
 }
 
@@ -70,7 +70,11 @@ impl KuhnPoker {
         self.cards.clone()
     }
 
-    pub fn print_deck(&self) {
-        println!("Deck: {:?}", self.cards);
+    pub fn get_player_cards(&self) -> usize {
+        self.cards[self.player]
+    }
+
+    pub fn get_history_str(&self) -> Vec<String> {
+        self.history.clone()
     }
 }
