@@ -23,15 +23,15 @@ impl GameState {
     }
 
     fn get_legal_actions(&self) -> Vec<String> {
-        if self.history.ends_with("p") {
-            vec!["p".to_string(), "b".to_string()]
-        } else {
-            vec!["p".to_string(), "b".to_string()]
-        }
+        vec!["p".to_string(), "b".to_string()]
     }
 
     fn is_terminal(&self) -> bool {
-        self.history == "pp" || self.history == "bp" || self.history == "bb"
+        self.history == "pbp" ||
+        self.history == "pbb" ||
+        self.history == "pp" ||
+        self.history == "bp" ||
+        self.history == "bb"
     }
 
     fn get_payoff(&self, player: usize) -> f64 {
@@ -42,16 +42,16 @@ impl GameState {
             } else {
                 -1.0
             }
-        } else if self.history == "bp" {
+        } else if self.history == "bp" || self.history == "pbp" {
             1.0
-        } else if self.history == "bb" {
+        } else if self.history == "bb" || self.history == "pbb"{
             if self.cards[player] > self.cards[opponent] {
                 2.0
             } else {
                 -2.0
             }
         } else {
-            0.0
+            panic!("Invalid game state: history = {}, cards = {:?}", self.history, self.cards)
         }
     }
 
@@ -163,7 +163,7 @@ impl CFR {
 
 fn main() {
     let mut cfr = CFR::new();
-    let ev = cfr.train(1000); // Increase iterations for better convergence
+    let ev = cfr.train(1000000); // Increase iterations for better convergence
     println!("Expected value: {}", ev);
 
     // Example usage
@@ -171,7 +171,7 @@ fn main() {
         for history in ["", "p", "b", "pp", "bp", "bb"].iter() {
             let info_set = format!("{}{}", card, history);
             if let Some(_) = cfr.strategy_sum.get(&info_set) {
-                println!("Average strategy for {}: {:?}", info_set, cfr.get_average_strategy(&info_set));
+                println!("Average strategy for {}: [{:.2}, {:.2}]", info_set, cfr.get_average_strategy(&info_set)[0], cfr.get_average_strategy(&info_set)[1]);
             }
         }
     }
