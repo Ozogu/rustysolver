@@ -2,7 +2,7 @@ use rustysolver::cfr::CFR;
 
 fn main() {
     let mut cfr = CFR::new();
-    let ev = cfr.train(12000);
+    let ev = cfr.train(100000);
     println!("Expected value: {}", ev);
 
     // Example usage
