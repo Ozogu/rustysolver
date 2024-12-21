@@ -2,18 +2,18 @@ use rand::seq::SliceRandom;
 use rand::rngs::StdRng;
 
 #[derive(Clone, Debug)]
-pub struct KuhnPoker {
+pub struct Kuhn {
     cards: Vec<usize>,
     history: Vec<String>,
     player: usize,
 }
 
-impl KuhnPoker {
+impl Kuhn {
     pub fn new(rng: &mut StdRng) -> Self {
         let mut cards = vec![0, 1, 2];
         let mut rng = rng;
         cards.shuffle(&mut rng);
-        KuhnPoker {
+        Kuhn {
             cards,
             history: Vec::new(),
             player: 0
@@ -55,7 +55,7 @@ impl KuhnPoker {
         }
     }
 
-    pub fn next_state(&self, action: &str) -> KuhnPoker {
+    pub fn next_state(&self, action: &str) -> Kuhn {
         let mut next_state = self.clone();
         next_state.history.push(action.to_string());
         next_state.player = 1 - self.player;

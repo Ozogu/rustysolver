@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 use rand::SeedableRng;
 use rand::rngs::StdRng;
-use crate::kuhn::KuhnPoker;
+use crate::kuhn::Kuhn;
 
 pub struct CFR {
     regrets: HashMap<String, Vec<f64>>,
@@ -40,7 +40,7 @@ impl CFR {
         strategy
     }
 
-    pub fn cfr(&mut self, state: &KuhnPoker, player: usize, p0: f64, p1: f64) -> f64 {
+    pub fn cfr(&mut self, state: &Kuhn, player: usize, p0: f64, p1: f64) -> f64 {
         if state.is_terminal() {
             return state.get_payoff(player);
         }
@@ -73,7 +73,7 @@ impl CFR {
     pub fn train(&mut self, iterations: usize) -> f64 {
         let mut ev = 0.0;
         for _ in 0..iterations {
-            let state = KuhnPoker::new(&mut self.rng);
+            let state = Kuhn::new(&mut self.rng);
             ev += self.cfr(&state, 0, 1.0, 1.0);
         }
 
