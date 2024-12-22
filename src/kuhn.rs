@@ -17,15 +17,16 @@ impl Kuhn {
 
     pub fn deck(&self) -> Deck {
         Deck::new_from_cards(vec![
+            Card::new(0, Suit::Diamonds),
             Card::new(1, Suit::Diamonds),
             Card::new(2, Suit::Diamonds),
-            Card::new(3, Suit::Diamonds),
         ])
     } 
 
     pub fn shuffled_cards(&self, rng: &mut StdRng) -> Deck {
         let mut cards = self.deck();
         cards.shuffle(rng);
+        cards.reverse();
         cards
     }
 

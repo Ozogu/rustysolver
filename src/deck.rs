@@ -31,6 +31,10 @@ impl Deck {
         self.cards.shuffle(rng);
     }
 
+    pub fn reverse(&mut self) {
+        self.cards.reverse();
+    }
+
     pub fn draw(&mut self) -> Option<Card> {
         self.cards.pop()
     }
