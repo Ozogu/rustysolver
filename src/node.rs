@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 use crate::hole_cards::HoleCards;
+use crate::kuhn::Kuhn;
 use crate::player::Player;
 use crate::info_state::InfoState;
 use crate::action::Action;
@@ -9,14 +10,17 @@ pub struct Node {
     pub info_state: InfoState,
     pub reach_prob: HashMap<Player, f64>,
     pub cards: HashMap<Player, HoleCards>,
+    pub actions: Vec<Action>,
 }
 
 impl Node {
-    pub fn new(ip_cards: HoleCards, oop_cards: HoleCards) -> Node {
+    pub fn new(game: &Kuhn, ip_cards: HoleCards, oop_cards: HoleCards) -> Node {
+        let info_state = InfoState::new(ip_cards.clone());
         Node {
-            info_state: InfoState::new(ip_cards.clone()),
+            info_state: info_state.clone(),
             reach_prob: HashMap::from([(Player::IP, 1.0), (Player::OOP, 1.0)]),
             cards: HashMap::from([(Player::IP, ip_cards), (Player::OOP, oop_cards)]),
+            actions: game.get_legal_actions(&info_state),
         }
     }
 
@@ -58,14 +62,14 @@ mod tests {
 
     #[test]
     fn test_new() {
-        let node = Node::new(HoleCards::new_with_rank(1), HoleCards::new_with_rank(2));
+        let node = Node::new(&Kuhn::new(), HoleCards::new_with_rank(1), HoleCards::new_with_rank(2));
         assert_eq!(node.reach_prob[&Player::IP], 1.0);
         assert_eq!(node.reach_prob[&Player::OOP], 1.0);
     }
 
     #[test]
     fn test_reach_prob() {
-        let node = Node::new(HoleCards::new_with_rank(1), HoleCards::new_with_rank(2));
+        let node = Node::new(&Kuhn::new(), HoleCards::new_with_rank(1), HoleCards::new_with_rank(2));
         assert_eq!(node.player_reach_prob(), 1.0);
         assert_eq!(node.opponent_reach_prob(), 1.0);
 
@@ -81,7 +85,7 @@ mod tests {
 
     #[test]
     fn test_next_node() {
-        let node = Node::new(HoleCards::new_with_rank(1), HoleCards::new_with_rank(2));
+        let node = Node::new(&Kuhn::new(), HoleCards::new_with_rank(1), HoleCards::new_with_rank(2));
         let next_node = node.next_node(Action::Check, 0.5);
         assert_eq!(next_node.reach_prob[&Player::IP], 0.5);
         assert_eq!(next_node.reach_prob[&Player::OOP], 1.0);
@@ -91,7 +95,7 @@ mod tests {
     fn test_player_cards() {
         let ip_cards = HoleCards::new_with_rank(1);
         let oop_cards = HoleCards::new_with_rank(2);
-        let node = Node::new(ip_cards.clone(), oop_cards.clone());
+        let node = Node::new(&Kuhn::new(), ip_cards.clone(), oop_cards.clone());
         assert_eq!(node.player_cards(), ip_cards);
         assert_eq!(node.opponent_cards(), oop_cards);
 
