@@ -48,10 +48,15 @@ impl Node {
         self.cards[&self.player().opponent()].clone()
     }
 
-    pub fn next_node(&self, action: Action, action_prob: f64) -> Node {
+    pub fn zero_utils(&self) -> Vec<f64> {
+        vec![0.0; self.actions.len()]
+    }
+
+    pub fn next_node(&self, game: &Kuhn, action: Action, action_prob: f64) -> Node {
         let mut next_node: Node = self.clone();
         next_node.info_state = next_node.info_state.next_info_state(action, self.opponent_cards());
         next_node.reach_prob.insert(self.player(), self.player_reach_prob() * action_prob);
+        next_node.actions = game.get_legal_actions(&next_node.info_state);
         next_node
     }
 }
@@ -74,11 +79,11 @@ mod tests {
         assert_eq!(node.opponent_reach_prob(), 1.0);
 
         // in next node the previous player's (opponent) reach prob is multiplied by the action prob
-        let next_node = node.next_node(Action::Check, 0.5);
+        let next_node = node.next_node(&Kuhn::new(), Action::Check, 0.5);
         assert_eq!(next_node.player_reach_prob(), 1.0);
         assert_eq!(next_node.opponent_reach_prob(), 0.5);
         
-        let next_node = next_node.next_node(Action::Check, 0.25);
+        let next_node = next_node.next_node(&Kuhn::new(), Action::Check, 0.25);
         assert_eq!(next_node.opponent_reach_prob(), 0.25);
         assert_eq!(next_node.player_reach_prob(), 0.5);
     }
@@ -86,9 +91,10 @@ mod tests {
     #[test]
     fn test_next_node() {
         let node = Node::new(&Kuhn::new(), HoleCards::new_with_rank(1), HoleCards::new_with_rank(2));
-        let next_node = node.next_node(Action::Check, 0.5);
+        let next_node = node.next_node(&Kuhn::new(), Action::Check, 0.5);
         assert_eq!(next_node.reach_prob[&Player::IP], 0.5);
         assert_eq!(next_node.reach_prob[&Player::OOP], 1.0);
+        assert_eq!(next_node.actions, Kuhn::new().get_legal_actions(&next_node.info_state));
     }
 
     #[test]
@@ -99,7 +105,7 @@ mod tests {
         assert_eq!(node.player_cards(), ip_cards);
         assert_eq!(node.opponent_cards(), oop_cards);
 
-        let next_node = node.next_node(Action::Check, 1.0);
+        let next_node = node.next_node(&Kuhn::new(), Action::Check, 1.0);
         assert_eq!(next_node.player_cards(), oop_cards);
         assert_eq!(next_node.opponent_cards(), ip_cards);
     }
