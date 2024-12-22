@@ -14,21 +14,13 @@ impl Pot {
         }
     }
 
-    pub fn get_win_amount(&self, player: Option<Player>) -> f64 {
-        match player {
-            Some(player) => self.pot[&player.opponent()],
-            // In case of draw, win amount is same between IP and OOP.
-            None => self.pot[&Player::IP],
-        }
-    }
-
     pub fn total(&self) -> f64 {
         self.pot[&Player::IP] + self.pot[&Player::OOP]
     }
 
     pub fn update(&mut self, player: Player, action: Action) {
         match action {
-            Action::Check => (),
+            Action::Check | Action::Fold => (),
             Action::Bet(amount) => {
                 *self.pot.get_mut(&player).unwrap() +=
                     self.bet_amount(self.total(), amount);
@@ -42,8 +34,23 @@ impl Pot {
                 self.pot.insert(player, self.pot[&player.opponent()]);
 
             },
-            Action::Fold => {
-                panic!("Fold should not reach Pot::update");
+        }
+    }
+
+    pub fn payoff(&self, player: Player, won: Option<bool>) -> f64 {
+        match won {
+            Some(true) => match player {
+                // Win what the opponent contributed
+                player => self.pot[&player.opponent()],
+            },
+            Some(false) => {
+                // Lose what you contributed
+                -self.pot[&player]
+            },
+            None => {
+                // In case of draw, pot size should be the same
+                assert!(self.pot[&Player::IP] == self.pot[&Player::OOP]);
+                self.pot[&Player::IP]
             },
         }
     }
@@ -70,16 +77,23 @@ mod tests {
     }
 
     #[test]
-    fn test_get_win_amount() {
+    fn test_get_win_amount_winning() {
         let pot = Pot::new(1.0, 2.0);
-        assert_eq!(pot.get_win_amount(Some(Player::IP)), 2.0);
-        assert_eq!(pot.get_win_amount(Some(Player::OOP)), 1.0);
+        assert_eq!(pot.payoff(Player::IP, Some(true)), 2.0);
+        assert_eq!(pot.payoff(Player::OOP, Some(true)), 1.0);
     }
 
     #[test]
-    fn test_get_win_amount_in_draw() {
+    fn test_get_win_amount_losing() {
+        let pot = Pot::new(1.0, 2.0);
+        assert_eq!(pot.payoff(Player::IP, Some(false)), -1.0);
+        assert_eq!(pot.payoff(Player::OOP, Some(false)), -2.0);
+    }
+
+    #[test]
+    fn test_get_win_amount_on_draw() {
         let pot = Pot::new(1.0, 1.0);
-        assert_eq!(pot.get_win_amount(None), 1.0);
+        assert_eq!(pot.payoff(Player::IP, None), 1.0);
     }
 
     #[test]
@@ -107,13 +121,6 @@ mod tests {
         let mut pot = Pot::new(2.0, 1.0);
         pot.update(Player::OOP, Action::Call);
         assert_eq!(pot.pot, HashMap::from([(Player::IP, 2.0), (Player::OOP, 2.0)]));
-    }
-
-    #[test]
-    #[should_panic]
-    fn test_update_fold() {
-        let mut pot = Pot::new(1.0, 1.0);
-        pot.update(Player::OOP, Action::Fold);
     }
 
     #[test]
