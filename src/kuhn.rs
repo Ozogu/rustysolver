@@ -6,6 +6,7 @@ use crate::node::Node;
 use crate::deck::Deck;
 use crate::card::Card;
 use crate::suit::Suit;
+use crate::pot::Pot;
 
 #[derive(Clone, Debug)]
 pub struct Kuhn {}
@@ -13,6 +14,10 @@ pub struct Kuhn {}
 impl Kuhn {
     pub fn new() -> Self {
         Kuhn {}
+    }
+
+    pub fn initial_pot(&self) -> Pot {
+        Pot::new(1.0, 1.0)
     }
 
     pub fn deck(&self) -> Deck {
@@ -44,10 +49,29 @@ impl Kuhn {
     pub fn get_legal_actions(&self, info_state: &InfoState) -> Vec<Action> {
         // At root there will be no history
         let last = info_state.last().unwrap_or(&Action::Check);
-        if last == &Action::Check {
+        if last == &Action::Check || last == &Action::Call {
             vec![Action::Check, Action::Bet(50)]
-        } else { // last == Bet
+        } else if last == &Action::Bet(50) {
             vec![Action::Call, Action::Fold]
+        } else {
+            vec![]
+        }
+    }
+
+    pub fn player_wins(&self, node: &Node) -> Option<bool> {
+        let last = node.info_state.last().unwrap();
+        if last == &Action::Fold {
+            Some(false)
+        } else if last == &Action::Check || last == &Action::Call {
+            if node.player_cards() > node.opponent_cards() {
+                Some(true)
+            } else if node.player_cards() < node.opponent_cards() {
+                Some(false)
+            } else {
+                None
+            }
+        } else {
+            panic!("Invalid action: {:?}", last);
         }
     }
 
