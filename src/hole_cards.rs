@@ -1,9 +1,19 @@
 use crate::card::Card;
 use crate::suit::Suit;
+use std::cmp::max;
 
-#[derive(Clone, Debug, PartialEq, PartialOrd)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct HoleCards {
     cards: [Card; 2],
+}
+
+impl PartialOrd for HoleCards {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        let self_highest_card = max(self.cards[0].rank, self.cards[1].rank);
+        let other_highest_card = max(other.cards[0].rank, other.cards[1].rank);
+
+        self_highest_card.partial_cmp(&other_highest_card)
+    }
 }
 
 impl HoleCards {
@@ -30,5 +40,46 @@ impl HoleCards {
 
     pub fn cards(&self) -> [Card; 2] {
         self.cards.clone()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_new() {
+        let card1 = Card::new(1, Suit::Diamonds);
+        let card2 = Card::new(2, Suit::Diamonds);
+        let hole_cards = HoleCards::new(&card1, &card2);
+        assert_eq!(hole_cards.cards, [card1, card2]);
+    }
+
+    #[test]
+    fn test_cmp_same_hole_cards() {
+        let hole_cards1 = HoleCards::new_with_ranks(1, 2);
+        let hole_cards2 = HoleCards::new_with_ranks(1, 2);
+        assert_eq!(hole_cards1 < hole_cards2, false);
+    }
+
+    #[test]
+    fn test_cmp_same_hole_cards_different_order() {
+        let hole_cards1 = HoleCards::new_with_ranks(1, 2);
+        let hole_cards2 = HoleCards::new_with_ranks(2, 1);
+        assert_eq!(hole_cards1 < hole_cards2, false);
+    }
+
+    #[test]
+    fn test_cmp_different_hole_cards() {
+        let hole_cards1 = HoleCards::new_with_ranks(1, 2);
+        let hole_cards2 = HoleCards::new_with_ranks(2, 3);
+        assert_eq!(hole_cards1 < hole_cards2, true);
+    }
+    
+    #[test]
+    fn test_cmp_pocket_pairs() {
+        let hole_cards1 = HoleCards::new_with_ranks(1, 1);
+        let hole_cards2 = HoleCards::new_with_ranks(2, 2);
+        assert_eq!(hole_cards1 < hole_cards2, true);
     }
 }
