@@ -2,6 +2,7 @@ use crate::action::Action;
 use crate::history::History;
 use crate::hole_cards::HoleCards;
 use crate::player::Player;
+use std::fmt;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct InfoState {
@@ -22,11 +23,7 @@ impl InfoState {
     pub fn history(&self) -> History {
         self.history.clone()
     }
-
-    pub fn to_string(&self) -> String {
-        format!("{:?}{:?}", self.hole_cards, self.history)
-    }
-
+    
     pub fn last(&self) -> Option<&Action> {
         self.history.last()
     }
@@ -41,6 +38,12 @@ impl InfoState {
         next_state.player = self.player.opponent();
         next_state.hole_cards = hole_cards;
         next_state
+    }
+}
+
+impl fmt::Display for InfoState {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{:}{:}{:}", self.player, self.hole_cards, self.history)
     }
 }
 

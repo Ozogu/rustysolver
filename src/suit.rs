@@ -1,3 +1,5 @@
+use std::fmt;
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Hash)]
 pub enum Suit {
     Spades,
@@ -28,5 +30,11 @@ impl Suit {
             "♣" => Suit::Clubs,
             _ => panic!("Invalid suit: {}", s),
         }
+    }
+}
+
+impl fmt::Display for Suit {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}", self.to_string())
     }
 }

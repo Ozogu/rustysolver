@@ -1,4 +1,5 @@
 use crate::suit::Suit;
+use std::fmt;
 
 #[derive(Clone, Debug, PartialEq, PartialOrd, Eq, Hash)]
 pub struct Card {
@@ -13,5 +14,11 @@ impl Card {
 
     pub fn new_with_rank(rank: u8) -> Self {
         Card { rank, suit: Suit::Diamonds }
+    }
+}
+
+impl fmt::Display for Card {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{:}{:}", self.rank, self.suit)
     }
 }

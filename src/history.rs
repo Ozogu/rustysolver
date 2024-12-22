@@ -1,14 +1,16 @@
 use crate::action::Action;
+use crate::action_list::ActionList;
+use std::fmt;
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub struct History {
-    history: Vec<Action>,
+    history: ActionList
 }
 
 impl History {
     pub fn new() -> Self {
         History {
-            history: Vec::new(),
+            history: ActionList::new(),
         }
     }
 
@@ -25,7 +27,7 @@ impl History {
     }
     
     pub fn to_vec(&self) -> Vec<Action> {
-        self.history.clone()
+        self.history.to_vec()
     }
 
     pub fn is_terminal(&self) -> bool {
@@ -46,6 +48,12 @@ impl History {
     }
 }
 
+impl fmt::Display for History {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{:}", self.history)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -53,7 +61,7 @@ mod tests {
     #[test]
     fn test_new() {
         let history = History::new();
-        assert_eq!(history.history, vec![]);
+        assert_eq!(history.history, ActionList::new());
     }
 
     #[test]

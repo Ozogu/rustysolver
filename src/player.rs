@@ -1,3 +1,5 @@
+use std::fmt;
+
 #[derive(Debug, Clone, Copy, PartialEq, Hash, Eq)]
 pub enum Player {
     IP,
@@ -16,6 +18,15 @@ impl Player {
         match self {
             Player::IP => Player::OOP,
             Player::OOP => Player::IP,
+        }
+    }
+}
+
+impl fmt::Display for Player {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            Player::IP => write!(f, "IP"),
+            Player::OOP => write!(f, "OOP"),
         }
     }
 }

@@ -22,29 +22,24 @@ impl CFR {
         }
     }
 
-    pub fn get_strategy(&mut self, node: &Node) -> Vec<f64> {
-        let actions = self.regrets.get(&node.info_state).unwrap();
-        let mut strategy = vec![0.0; actions.len()];
-        let mut normalizing_sum = 0.0;
-
-        for (i, regret) in actions.iter().enumerate() {
-            strategy[i] = if *regret > 0.0 { *regret } else { 0.0 };
-            normalizing_sum += strategy[i];
+    pub fn train(&mut self, iterations: usize) -> f64 {
+        let mut ev = 0.0;
+        for _ in 0..iterations {
+            let (ip_cards, oop_cards, _) = self.game.deal(&mut self.rng);
+            ev += self.cfr(Node::new(&self.game, ip_cards, oop_cards));
         }
 
-        for i in 0..strategy.len() {
-            if normalizing_sum > 0.0 {
-                strategy[i] /= normalizing_sum;
-            } else {
-                strategy[i] = 1.0 / strategy.len() as f64;
-            }
-            self.strategy_sum.get_mut(&node.info_state).unwrap()[i] += node.player_reach_prob() * strategy[i];
-        }
-
-        strategy
+        return ev / iterations as f64;
     }
 
-    pub fn cfr(&mut self, node: Node) -> f64 {
+    pub fn print_strategy(&mut self) {
+        for (info_state, _) in &self.regrets {
+            let avg_strategy = self.get_average_strategy(info_state).unwrap();
+            println!("{:}: {:.2?}", info_state, avg_strategy);
+        }
+    }
+
+    fn cfr(&mut self, node: Node) -> f64 {
         if node.is_terminal() {
             return self.game.get_payoff(&node);
         }
@@ -70,21 +65,29 @@ impl CFR {
         node_util
     }
 
-    pub fn train(&mut self, iterations: usize) -> f64 {
-        let mut ev = 0.0;
-        for _ in 0..iterations {
-            let (ip_cards, oop_cards, _) = self.game.deal(&mut self.rng);
-            ev += self.cfr(Node::new(&self.game, ip_cards, oop_cards));
+    fn get_strategy(&mut self, node: &Node) -> Vec<f64> {
+        let actions = self.regrets.get(&node.info_state).unwrap();
+        let mut strategy: Vec<f64> = node.zero_utils();
+        let mut normalizing_sum = 0.0;
+
+        for (i, regret) in actions.iter().enumerate() {
+            strategy[i] = if *regret > 0.0 { *regret } else { 0.0 };
+            normalizing_sum += strategy[i];
         }
 
-        return ev / iterations as f64;
+        for i in 0..strategy.len() {
+            if normalizing_sum > 0.0 {
+                strategy[i] /= normalizing_sum;
+            } else {
+                strategy[i] = 1.0 / strategy.len() as f64;
+            }
+            self.strategy_sum.get_mut(&node.info_state).unwrap()[i] += node.player_reach_prob() * strategy[i];
+        }
+
+        strategy
     }
 
-    pub fn get_average_strategy(&self, info_state: &InfoState) -> Option<Vec<f64>> {
-        if !self.strategy_sum.contains_key(info_state) {
-            return None;
-        }
-
+    fn get_average_strategy(&self, info_state: &InfoState) -> Option<Vec<f64>> {
         let strategy_sum = self.strategy_sum.get(info_state).unwrap();
         let mut avg_strategy = vec![0.0; strategy_sum.len()];
         let mut normalizing_sum = 0.0;
