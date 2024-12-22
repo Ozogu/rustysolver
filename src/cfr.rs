@@ -41,7 +41,13 @@ impl CFR {
 
     fn cfr(&mut self, node: Node) -> f64 {
         if node.is_terminal() {
-            return self.game.get_payoff(&node);
+            let payoff = self.game.get_payoff(&node);
+            let won = self.game.player_wins(&node);
+            let win_amount = node.pot.payoff(node.player(), won);
+
+            debug_assert_eq!(payoff, win_amount, "{:}", node.info_state);
+
+            return win_amount;
         }
         
         self.create_node_entry(&node);
