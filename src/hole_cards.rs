@@ -1,6 +1,6 @@
 use crate::card::Card;
 use crate::suit::Suit;
-use std::cmp::max;
+
 use std::fmt;
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
@@ -10,8 +10,8 @@ pub struct HoleCards {
 
 impl PartialOrd for HoleCards {
     fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
-        let self_highest_card = max(self.cards[0].rank, self.cards[1].rank);
-        let other_highest_card = max(other.cards[0].rank, other.cards[1].rank);
+        let self_highest_card = std::cmp::max(self.cards[0].rank, self.cards[1].rank);
+        let other_highest_card = std::cmp::max(other.cards[0].rank, other.cards[1].rank);
 
         self_highest_card.partial_cmp(&other_highest_card)
     }
@@ -40,7 +40,7 @@ impl HoleCards {
     }
 
     pub fn highest(&self) -> u8 {
-        max(self.cards[0].rank, self.cards[1].rank)
+        std::cmp::max(self.cards[0].rank, self.cards[1].rank)
     }
 
     pub fn cards(&self) -> [Card; 2] {
