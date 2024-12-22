@@ -3,7 +3,7 @@ use crate::history::History;
 use crate::hole_cards::HoleCards;
 use crate::player::Player;
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct InfoState {
     player: Player,
     hole_cards: HoleCards,

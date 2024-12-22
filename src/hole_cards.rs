@@ -2,7 +2,7 @@ use crate::card::Card;
 use crate::suit::Suit;
 use std::cmp::max;
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub struct HoleCards {
     cards: [Card; 2],
 }

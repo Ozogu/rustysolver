@@ -7,8 +7,8 @@ use crate::node::Node;
 
 pub struct CFR {
     game: Kuhn,
-    regrets: HashMap<String, Vec<f64>>,
-    strategy_sum: HashMap<String, Vec<f64>>,
+    regrets: HashMap<InfoState, Vec<f64>>,
+    strategy_sum: HashMap<InfoState, Vec<f64>>,
     rng: StdRng,
 }
 
@@ -23,8 +23,7 @@ impl CFR {
     }
 
     pub fn get_strategy(&mut self, info_state: &InfoState, realization_weight: f64) -> Vec<f64> {
-        let info_set = info_state.to_string();
-        let actions = self.regrets.entry(info_set.clone()).or_insert(vec![0.0; 2]);
+        let actions = self.regrets.entry(info_state.clone()).or_insert(vec![0.0; 2]);
         let mut strategy = vec![0.0; actions.len()];
         let mut normalizing_sum = 0.0;
 
@@ -39,7 +38,7 @@ impl CFR {
             } else {
                 strategy[i] = 1.0 / strategy.len() as f64;
             }
-            self.strategy_sum.entry(info_set.clone()).or_insert(vec![0.0; 2])[i] += realization_weight * strategy[i];
+            self.strategy_sum.entry(info_state.clone()).or_insert(vec![0.0; 2])[i] += realization_weight * strategy[i];
         }
 
         strategy
@@ -57,15 +56,15 @@ impl CFR {
         let mut action_util = vec![0.0; actions.len()];
         let mut node_util = 0.0;
 
-        for (i, action) in actions.iter().enumerate() {
-            let next_node = node.next_node(action.clone(), strategy[i]);
+        for i in 0..actions.len() {
+            let next_node = node.next_node(actions[i].clone(), strategy[i]);
             action_util[i] = -self.cfr(next_node);
             node_util += strategy[i] * action_util[i];
         }
 
-        for (i, _) in actions.iter().enumerate() {
+        for i in 0..actions.len() {
             let regret = action_util[i] - node_util;
-            self.regrets.entry(info_state.to_string()).or_insert(vec![0.0; actions.len()])[i] += node.opponent_reach_prob() * regret;
+            self.regrets.entry(info_state.clone()).or_insert(vec![0.0; actions.len()])[i] += node.opponent_reach_prob() * regret;
         }
 
         node_util
@@ -81,12 +80,12 @@ impl CFR {
         return ev / iterations as f64;
     }
 
-    pub fn get_average_strategy(&self, info_set: &str) -> Option<Vec<f64>> {
-        if !self.strategy_sum.contains_key(info_set) {
+    pub fn get_average_strategy(&self, info_state: &InfoState) -> Option<Vec<f64>> {
+        if !self.strategy_sum.contains_key(info_state) {
             return None;
         }
 
-        let strategy_sum = self.strategy_sum.get(info_set).unwrap();
+        let strategy_sum = self.strategy_sum.get(info_state).unwrap();
         let mut avg_strategy = vec![0.0; strategy_sum.len()];
         let mut normalizing_sum = 0.0;
 

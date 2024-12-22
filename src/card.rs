@@ -1,6 +1,6 @@
 use crate::suit::Suit;
 
-#[derive(Clone, Debug, PartialEq, PartialOrd)]
+#[derive(Clone, Debug, PartialEq, PartialOrd, Eq, Hash)]
 pub struct Card {
     pub suit: Suit,
     pub rank: u8,
