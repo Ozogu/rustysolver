@@ -4,6 +4,7 @@ use crate::kuhn::Kuhn;
 use crate::player::Player;
 use crate::info_state::InfoState;
 use crate::action::Action;
+use crate::pot::Pot;
 
 #[derive(Clone, Debug)]
 pub struct Node {
@@ -11,16 +12,18 @@ pub struct Node {
     pub reach_prob: HashMap<Player, f64>,
     pub cards: HashMap<Player, HoleCards>,
     pub actions: Vec<Action>,
+    pub pot: Pot,
 }
 
 impl Node {
     pub fn new(game: &Kuhn, ip_cards: HoleCards, oop_cards: HoleCards) -> Node {
         let info_state = InfoState::new(ip_cards.clone());
         Node {
-            info_state: info_state.clone(),
+            actions: game.get_legal_actions(&info_state),
+            info_state,
             reach_prob: HashMap::from([(Player::IP, 1.0), (Player::OOP, 1.0)]),
             cards: HashMap::from([(Player::IP, ip_cards), (Player::OOP, oop_cards)]),
-            actions: game.get_legal_actions(&info_state),
+            pot: game.initial_pot(),
         }
     }
 
@@ -57,6 +60,7 @@ impl Node {
         next_node.info_state = next_node.info_state.next_info_state(action, self.opponent_cards());
         next_node.reach_prob.insert(self.player(), self.player_reach_prob() * action_prob);
         next_node.actions = game.get_legal_actions(&next_node.info_state);
+        next_node.pot.update(self.player(), action);
         next_node
     }
 }
@@ -91,10 +95,11 @@ mod tests {
     #[test]
     fn test_next_node() {
         let node = Node::new(&Kuhn::new(), HoleCards::new_with_rank(1), HoleCards::new_with_rank(2));
-        let next_node = node.next_node(&Kuhn::new(), Action::Check, 0.5);
+        let next_node = node.next_node(&Kuhn::new(), Action::Bet(50), 0.5);
         assert_eq!(next_node.reach_prob[&Player::IP], 0.5);
         assert_eq!(next_node.reach_prob[&Player::OOP], 1.0);
         assert_eq!(next_node.actions, Kuhn::new().get_legal_actions(&next_node.info_state));
+        assert_eq!(next_node.pot.total(), node.pot.total() + 1.0);
     }
 
     #[test]
