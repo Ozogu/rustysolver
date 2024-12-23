@@ -5,6 +5,8 @@ use crate::player::Player;
 use crate::info_state::InfoState;
 use crate::action::Action;
 use crate::pot::Pot;
+use crate::street::Street;
+use crate::board::Board;
 
 #[derive(Clone, Debug)]
 pub struct Node {
@@ -13,6 +15,8 @@ pub struct Node {
     pub cards: HashMap<Player, HoleCards>,
     pub actions: Vec<Action>,
     pub pot: Pot,
+    pub street: Street,
+    pub board: Board,
 }
 
 impl Node {
@@ -24,6 +28,8 @@ impl Node {
             reach_prob: HashMap::from([(Player::IP, 1.0), (Player::OOP, 1.0)]),
             cards: HashMap::from([(Player::IP, ip_cards), (Player::OOP, oop_cards)]),
             pot: game.initial_pot(),
+            street: Street::Preflop,
+            board: Board::new(),
         }
     }
 

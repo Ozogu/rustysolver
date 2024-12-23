@@ -11,3 +11,6 @@ pub mod suit;
 pub mod deck;
 pub mod hole_cards;
 pub mod pot;
+pub mod leduc;
+pub mod street;
+pub mod board;
