@@ -49,30 +49,26 @@ impl Kuhn {
     pub fn get_legal_actions(&self, info_state: &InfoState) -> Vec<Action> {
         // At root there will be no history
         let last = info_state.last().unwrap_or(&Action::Check);
-        if last == &Action::Check || last == &Action::Call {
-            vec![Action::Check, Action::Bet(50)]
-        } else if last == &Action::Bet(50) {
-            vec![Action::Call, Action::Fold]
-        } else {
-            vec![]
+        match last {
+            Action::Check | Action::Call => vec![Action::Check, Action::Bet(50)],
+            Action::Bet(50) => vec![Action::Call, Action::Fold],
+            _ => vec![],
         }
     }
 
     pub fn player_wins(&self, node: &Node) -> Option<bool> {
         let last = node.info_state.last().unwrap();
-        if last == &Action::Fold {
-            Some(true)
-        } else if last == &Action::Check || last == &Action::Call {
-            let result = 
-                node.player_cards().partial_cmp(&node.opponent_cards());
-
+        match last {
+            Action::Fold => Some(true),
+            Action::Check | Action::Call => {
+            let result = node.player_cards().partial_cmp(&node.opponent_cards());
             match result {
                 Some(std::cmp::Ordering::Greater) => Some(true),
                 Some(std::cmp::Ordering::Less) => Some(false),
-                _ => None
+                _ => None,
             }
-        } else {
-            panic!("Invalid action: {:?}", last);
+            }
+            _ => panic!("Invalid action: {:?}", last),
         }
     }
 }
