@@ -63,12 +63,13 @@ impl Kuhn {
         if last == &Action::Fold {
             Some(true)
         } else if last == &Action::Check || last == &Action::Call {
-            if node.player_cards() > node.opponent_cards() {
-                Some(true)
-            } else if node.player_cards() < node.opponent_cards() {
-                Some(false)
-            } else {
-                None
+            let result = 
+                node.player_cards().partial_cmp(&node.opponent_cards());
+
+            match result {
+                Some(std::cmp::Ordering::Greater) => Some(true),
+                Some(std::cmp::Ordering::Less) => Some(false),
+                _ => None
             }
         } else {
             panic!("Invalid action: {:?}", last);
