@@ -21,6 +21,10 @@ impl Game for Kuhn {
         Pot::new(1.0, 1.0)
     }
 
+    fn num_streets(&self) -> u8 {
+        1
+    }
+
     fn deck(&self) -> Deck {
         Deck::new_from_cards(vec![
             Card::new(0, Suit::Diamonds),

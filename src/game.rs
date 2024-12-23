@@ -11,6 +11,7 @@ pub trait Game {
     fn deck(&self) -> Deck;
     fn get_legal_actions(&self, info_state: &InfoState) -> Vec<Action>;
     fn player_wins(&self, node: &Node) -> Option<bool>;
+    fn num_streets(&self) -> u8;
 
     fn shuffled_cards(&self, rng: &mut StdRng) -> Deck {
         let mut cards = self.deck();
