@@ -96,10 +96,11 @@ mod tests {
     fn test_next_node() {
         let node = Node::new(&Kuhn::new(), HoleCards::new_with_rank(1), HoleCards::new_with_rank(2));
         let next_node = node.next_node(&Kuhn::new(), Action::Bet(50), 0.5);
-        assert_eq!(next_node.reach_prob[&Player::IP], 0.5);
-        assert_eq!(next_node.reach_prob[&Player::OOP], 1.0);
+        assert_eq!(next_node.reach_prob[&Player::OOP], 0.5);
+        assert_eq!(next_node.reach_prob[&Player::IP], 1.0);
         assert_eq!(next_node.actions, Kuhn::new().get_legal_actions(&next_node.info_state));
         assert_eq!(next_node.pot.total(), node.pot.total() + 1.0);
+        assert_eq!(next_node.pot.contributions(), HashMap::from([(Player::IP, 1.0), (Player::OOP, 2.0)]));
     }
 
     #[test]
@@ -107,11 +108,11 @@ mod tests {
         let ip_cards = HoleCards::new_with_rank(1);
         let oop_cards = HoleCards::new_with_rank(2);
         let node = Node::new(&Kuhn::new(), ip_cards.clone(), oop_cards.clone());
-        assert_eq!(node.player_cards(), ip_cards);
-        assert_eq!(node.opponent_cards(), oop_cards);
+        assert_eq!(node.player_cards(), oop_cards);
+        assert_eq!(node.opponent_cards(), ip_cards);
 
         let next_node = node.next_node(&Kuhn::new(), Action::Check, 1.0);
-        assert_eq!(next_node.player_cards(), oop_cards);
-        assert_eq!(next_node.opponent_cards(), ip_cards);
+        assert_eq!(next_node.player_cards(), ip_cards);
+        assert_eq!(next_node.opponent_cards(), oop_cards);
     }
 }

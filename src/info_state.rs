@@ -14,7 +14,7 @@ pub struct InfoState {
 impl InfoState {
     pub fn new(hole_cards: HoleCards) -> Self {
         InfoState {
-            player: Player::IP,
+            player: Player::OOP,
             hole_cards,
             history: History::new(),
         }
@@ -54,7 +54,7 @@ mod tests {
     #[test]
     fn test_new() {
         let info_state = InfoState::new(HoleCards::new_with_rank(1));
-        assert_eq!(info_state.player, Player::IP);
+        assert_eq!(info_state.player, Player::OOP);
         assert_eq!(info_state.hole_cards, HoleCards::new_with_rank(1));
         assert_eq!(info_state.history, History::new());
     }
@@ -65,7 +65,7 @@ mod tests {
         let next_card = HoleCards::new_with_rank(2);
         let next_info_state = info_state.next_info_state(Action::Check, next_card.clone());
 
-        assert_eq!(next_info_state.player, Player::OOP);
+        assert_eq!(next_info_state.player, Player::IP);
         assert_eq!(next_info_state.hole_cards, next_card);
         assert_eq!(next_info_state.history.last(), Some(&Action::Check));
     }
