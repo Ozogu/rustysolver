@@ -17,7 +17,7 @@ pub struct Node {
 
 impl Node {
     pub fn new(game: &Kuhn, ip_cards: HoleCards, oop_cards: HoleCards) -> Node {
-        let info_state = InfoState::new(ip_cards.clone());
+        let info_state = InfoState::new(oop_cards.clone());
         Node {
             actions: game.get_legal_actions(&info_state),
             info_state,
