@@ -6,32 +6,39 @@ use crate::info_state::InfoState;
 use crate::action::Action;
 use crate::player_cards::PlayerCards;
 use crate::pot::Pot;
+use crate::history::History;
+use crate::board::Board;
 
 #[derive(Clone, Debug)]
 pub struct Node {
-    pub info_state: InfoState,
     pub reach_prob: HashMap<Player, f64>,
     pub actions: Vec<Action>,
     pub pot: Pot,
+    pub history: History,
+    pub player: Player,
+    pub cards: PlayerCards,
+    pub board: Board,
 }
 
 impl Node {
     pub fn new<G: Game>(game: &G, cards: PlayerCards) -> Node {
-        let info_state = InfoState::new(cards);
         Node {
-            actions: game.get_legal_actions(&info_state),
-            info_state,
+            actions: game.get_legal_actions(&History::new()),
             reach_prob: HashMap::from([(Player::IP, 1.0), (Player::OOP, 1.0)]),
             pot: game.initial_pot(),
+            history: History::new(),
+            player: Player::OOP,
+            cards,
+            board: Board::new(),
         }
     }
 
     pub fn is_terminal(&self) -> bool {
-        self.info_state.history().is_terminal()
+        self.history.is_terminal()
     }
     
     pub fn player(&self) -> Player {
-        self.info_state.player()
+        self.player
     }
 
     pub fn player_reach_prob(&self) -> f64 {
@@ -43,11 +50,11 @@ impl Node {
     }
 
     pub fn player_cards(&self) -> HoleCards {
-        self.info_state.player_cards()
+        self.cards.get(self.player)
     }
 
     pub fn opponent_cards(&self) -> HoleCards {
-        self.info_state.opponent_cards()
+        self.cards.get(self.player.opponent())
     }
 
     pub fn zero_utils(&self) -> Vec<f64> {
@@ -56,11 +63,16 @@ impl Node {
 
     pub fn next_node<G: Game>(&self, game: &G, action: Action, action_prob: f64) -> Node {
         let mut next_node: Node = self.clone();
-        next_node.info_state = next_node.info_state.next_info_state(action);
+        next_node.history.push(action);
+        next_node.player = self.player.opponent();
         next_node.reach_prob.insert(self.player(), self.player_reach_prob() * action_prob);
-        next_node.actions = game.get_legal_actions(&next_node.info_state);
+        next_node.actions = game.get_legal_actions(&next_node.history);
         next_node.pot.update(self.player(), action);
         next_node
+    }
+
+    pub fn info_state(&self) -> InfoState {
+        InfoState::new(self.player, self.player_cards(), self.history.clone())
     }
 }
 
@@ -101,7 +113,7 @@ mod tests {
         let next_node = node.next_node(&Kuhn::new(), Action::Bet(50), 0.5);
         assert_eq!(next_node.reach_prob[&Player::OOP], 0.5);
         assert_eq!(next_node.reach_prob[&Player::IP], 1.0);
-        assert_eq!(next_node.actions, Kuhn::new().get_legal_actions(&next_node.info_state));
+        assert_eq!(next_node.actions, Kuhn::new().get_legal_actions(&History::new_from_vec(vec![Action::Bet(50)])));
         assert_eq!(next_node.pot.total(), node.pot.total() + 1.0);
         assert_eq!(next_node.pot.contributions(), HashMap::from([(Player::IP, 1.0), (Player::OOP, 2.0)]));
     }

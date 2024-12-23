@@ -48,7 +48,6 @@ impl<G: Game> CFR<G> {
         }
         
         self.create_node_entry(&node);
-        let info_state = &node.info_state;
         let strategy = self.get_strategy(&node);
 
         let mut action_util = node.zero_utils();
@@ -62,14 +61,14 @@ impl<G: Game> CFR<G> {
 
         for i in 0..node.actions.len() {
             let regret = action_util[i] - node_util;
-            self.regrets.get_mut(info_state).unwrap()[i] += node.opponent_reach_prob() * regret;
+            self.regrets.get_mut(&node.info_state()).unwrap()[i] += node.opponent_reach_prob() * regret;
         }
 
         node_util
     }
 
     fn get_strategy(&mut self, node: &Node) -> Vec<f64> {
-        let actions = self.regrets.get(&node.info_state).unwrap();
+        let actions = self.regrets.get(&node.info_state()).unwrap();
         let mut strategy: Vec<f64> = node.zero_utils();
         let mut normalizing_sum = 0.0;
 
@@ -84,7 +83,7 @@ impl<G: Game> CFR<G> {
             } else {
                 strategy[i] = 1.0 / strategy.len() as f64;
             }
-            self.strategy_sum.get_mut(&node.info_state).unwrap()[i] += node.player_reach_prob() * strategy[i];
+            self.strategy_sum.get_mut(&node.info_state()).unwrap()[i] += node.player_reach_prob() * strategy[i];
         }
 
         strategy
@@ -111,7 +110,8 @@ impl<G: Game> CFR<G> {
     }
 
     fn create_node_entry(&mut self, node: &Node) {
-        self.regrets.entry(node.info_state.clone()).or_insert(node.zero_utils());
-        self.strategy_sum.entry(node.info_state.clone()).or_insert(node.zero_utils());
+        let info_state = &node.info_state();
+        self.regrets.entry(info_state.clone()).or_insert(node.zero_utils());
+        self.strategy_sum.entry(info_state.clone()).or_insert(node.zero_utils());
     }
 }

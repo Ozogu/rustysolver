@@ -13,6 +13,12 @@ impl History {
         }
     }
 
+    pub fn new_from_vec(history: Vec<Action>) -> Self {
+        History {
+            history,
+        }
+    }
+
     pub fn push(&mut self, action: Action) {
         self.history.push(action);
     }

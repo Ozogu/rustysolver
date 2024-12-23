@@ -1,5 +1,5 @@
 use crate::action::Action;
-use crate::info_state::InfoState;
+use crate::history::History;
 use crate::node::Node;
 use crate::deck::Deck;
 use crate::card::Card;
@@ -33,9 +33,9 @@ impl Game for Kuhn {
         ])
     }
 
-    fn get_legal_actions(&self, info_state: &InfoState) -> Vec<Action> {
+    fn get_legal_actions(&self, history: &History) -> Vec<Action> {
         // At root there will be no history
-        let last = info_state.last().unwrap_or(&Action::Check);
+        let last = history.last().unwrap_or(&Action::Check);
         match last {
             Action::Check | Action::Call => vec![Action::Check, Action::Bet(50)],
             Action::Bet(50) => vec![Action::Call, Action::Fold],
@@ -44,7 +44,7 @@ impl Game for Kuhn {
     }
 
     fn player_wins(&self, node: &Node) -> Option<bool> {
-        let last = node.info_state.last().unwrap();
+        let last = node.history.last().unwrap();
         match last {
             Action::Fold => Some(true),
             Action::Check | Action::Call => {
@@ -70,27 +70,23 @@ mod tests {
     #[test]
     fn test_legal_actions_at_root() {
         let kuhn = Kuhn::new();
-        let player_cards = PlayerCards::new(HoleCards::new_with_rank(1), HoleCards::new_with_rank(1));
-        let info_state = InfoState::new(player_cards);
-        let actions = kuhn.get_legal_actions(&info_state);
+        let actions = kuhn.get_legal_actions(&History::new());
         assert_eq!(actions, vec![Action::Check, Action::Bet(50)]);
     }
 
     #[test]
     fn test_legal_actions_after_check() {
         let kuhn = Kuhn::new();
-        let player_cards = PlayerCards::new(HoleCards::new_with_rank(0), HoleCards::new_with_rank(1));
-        let info_state = InfoState::new(player_cards).next_info_state(Action::Check);
-        let actions = kuhn.get_legal_actions(&info_state);
+        let history = History::new_from_vec(vec![Action::Check]);
+        let actions = kuhn.get_legal_actions(&history);
         assert_eq!(actions, vec![Action::Check, Action::Bet(50)]);
     }
 
     #[test]
     fn test_legal_actions_after_bet() {
         let kuhn = Kuhn::new();
-        let player_cards = PlayerCards::new(HoleCards::new_with_rank(0), HoleCards::new_with_rank(0));
-        let info_state = InfoState::new(player_cards).next_info_state(Action::Bet(50));
-        let actions = kuhn.get_legal_actions(&info_state);
+        let history = History::new_from_vec(vec![Action::Bet(50)]);
+        let actions = kuhn.get_legal_actions(&history);
         assert_eq!(actions, vec![Action::Call, Action::Fold]);
     }
 

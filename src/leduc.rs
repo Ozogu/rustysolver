@@ -1,10 +1,10 @@
 use crate::deck::Deck;
 use crate::game::Game;
+use crate::history::History;
 use crate::suit::Suit;
 use crate::card::Card;
 use crate::pot::Pot;
 use crate::action::Action;
-use crate::info_state::InfoState;
 use crate::node::Node;
 
 pub struct Leduc {}
@@ -37,7 +37,7 @@ impl Game for Leduc {
         2
     }
 
-    fn get_legal_actions(&self, info_state: &InfoState) -> Vec<Action> {
+    fn get_legal_actions(&self, history: &History) -> Vec<Action> {
         vec![]
     }
 
