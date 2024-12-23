@@ -55,6 +55,10 @@ impl Pot {
         }
     }
 
+    pub fn contributions(&self) -> HashMap<Player, f64> {
+        self.pot.clone()
+    }
+
     fn to_call(&self) -> f64 {
         (self.pot[&Player::IP] - self.pot[&Player::OOP]).abs()
     }
