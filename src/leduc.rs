@@ -37,6 +37,10 @@ impl Game for Leduc {
         2
     }
 
+    fn num_hole_cards(&self) -> u8 {
+        1
+    }
+
     fn get_legal_actions(&self, history: &History) -> Vec<Action> {
         vec![]
     }

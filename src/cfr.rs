@@ -1,9 +1,12 @@
 use std::collections::HashMap;
 use rand::SeedableRng;
 use rand::rngs::StdRng;
+use crate::hole_cards::HoleCards;
 use crate::info_state::InfoState;
 use crate::game::Game;
 use crate::node::Node;
+use crate::statistics::Statistics;
+use crate::player_cards::PlayerCards;
 
 pub struct CFR<G: Game> {
     game: G,
@@ -39,17 +42,56 @@ impl<G: Game> CFR<G> {
         }
     }
 
-    fn cfr(&mut self, node: Node) -> f64 {
-        if node.is_terminal() {
-            let won = self.game.player_wins(&node);
-            let win_amount = node.pot.payoff(node.player(), won);
+    pub fn build_statistics(&self) -> Statistics {
+        let mut statistics = Statistics::new();
+        let mut deck = self.game.deck();
+        
+        for _ in 0..deck.len() {
+            let card = deck.draw().unwrap().rank;
+            let cards1 = HoleCards::new_with_rank(card);
+            let mut deck_clone = deck.clone();
+            for _ in 0..deck_clone.len() {
+                let card = deck_clone.draw().unwrap().rank;
+                let cards2 = HoleCards::new_with_rank(card);
 
-            return win_amount;
+                let node  = Node::new(&self.game, PlayerCards::new(cards1.clone(), cards2.clone()));
+                self.iterate_statistics(node, &mut statistics);
+                let node = Node::new(&self.game, PlayerCards::new(cards2.clone(), cards1.clone()));
+                self.iterate_statistics(node, &mut statistics);
+            }
         }
+        statistics.finalize();
+
+        statistics
+    }
+
+    fn iterate_statistics(&self, node: Node, statistics: &mut Statistics) -> f64 {
+        if node.is_terminal() {
+            statistics.update_node_utils(&node, self.get_payoff(&node), node.zero_utils());
+
+            return self.get_payoff(&node);
+        }
+
+        let strategy = self.get_average_strategy(&node.info_state()).unwrap();
+        let mut action_utils = node.zero_utils();
+        let mut node_util = 0.0;
+
+        for i in 0..node.actions.len() {
+            let next_node = node.next_node(&self.game, node.actions[i].clone(), strategy[i]);
+            action_utils[i] = -self.iterate_statistics(next_node, statistics);
+            node_util += strategy[i] * action_utils[i];
+        }
+
+        statistics.update_node_utils(&node, node_util, action_utils);
+
+        node_util
+    }
+
+    fn cfr(&mut self, node: Node) -> f64 {
+        if node.is_terminal() { return self.get_payoff(&node); }
         
         self.create_node_entry(&node);
         let strategy = self.get_strategy(&node);
-
         let mut action_util = node.zero_utils();
         let mut node_util = 0.0;
 
@@ -113,5 +155,12 @@ impl<G: Game> CFR<G> {
         let info_state = &node.info_state();
         self.regrets.entry(info_state.clone()).or_insert(node.zero_utils());
         self.strategy_sum.entry(info_state.clone()).or_insert(node.zero_utils());
+    }
+
+    fn get_payoff(&self, node: &Node) -> f64 {
+        let won = self.game.player_wins(&node);
+        let win_amount = node.pot.payoff(node.player(), won);
+
+        return win_amount;
     }
 }

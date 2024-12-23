@@ -38,4 +38,12 @@ impl Deck {
     pub fn draw(&mut self) -> Option<Card> {
         self.cards.pop()
     }
+
+    pub fn to_vec(&self) -> Vec<Card> {
+        self.cards.clone()
+    }
+
+    pub fn len(&self) -> usize {
+        self.cards.len()
+    }
 }

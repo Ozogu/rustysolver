@@ -5,9 +5,9 @@ use std::fmt;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
 pub struct InfoState {
-    player: Player,
-    hole_cards: HoleCards,
-    history: History,
+    pub player: Player,
+    pub hole_cards: HoleCards,
+    pub history: History,
 }
 
 impl InfoState {
