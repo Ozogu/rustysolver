@@ -4,6 +4,7 @@ use crate::action::Action;
 use crate::pot::Pot;
 use crate::info_state::InfoState;
 use crate::node::Node;
+use crate::player_cards::PlayerCards;
 use rand::rngs::StdRng;
 
 pub trait Game {
@@ -20,14 +21,14 @@ pub trait Game {
         cards
     }
 
-    fn deal(&self, rng: &mut StdRng) -> (HoleCards, HoleCards, Deck) {
+    fn deal(&self, rng: &mut StdRng) -> (PlayerCards, Deck) {
         let mut cards = self.shuffled_cards(rng);
         let card1 = cards.draw().unwrap();
         let card2 = cards.draw().unwrap();
 
         let ip_cards = HoleCards::new_with_rank(card1.rank);
         let oop_cards = HoleCards::new_with_rank(card2.rank);
-    
-        (ip_cards, oop_cards, cards)
+
+        (PlayerCards::new(ip_cards, oop_cards), cards)
     } 
 }

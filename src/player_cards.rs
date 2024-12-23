@@ -2,7 +2,7 @@ use crate::hole_cards::HoleCards;
 use crate::player::Player;
 use std::fmt;
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PlayerCards {
     ip: HoleCards,
     oop: HoleCards,

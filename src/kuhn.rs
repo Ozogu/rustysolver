@@ -64,12 +64,14 @@ impl Game for Kuhn {
 mod tests {
     use super::*;
     use crate::player::Player;
+    use crate::player_cards::PlayerCards;
     use crate::hole_cards::HoleCards;
 
     #[test]
     fn test_legal_actions_at_root() {
         let kuhn = Kuhn::new();
-        let info_state = InfoState::new(HoleCards::new_with_rank(0));
+        let player_cards = PlayerCards::new(HoleCards::new_with_rank(1), HoleCards::new_with_rank(1));
+        let info_state = InfoState::new(player_cards);
         let actions = kuhn.get_legal_actions(&info_state);
         assert_eq!(actions, vec![Action::Check, Action::Bet(50)]);
     }
@@ -77,7 +79,8 @@ mod tests {
     #[test]
     fn test_legal_actions_after_check() {
         let kuhn = Kuhn::new();
-        let info_state = InfoState::new(HoleCards::new_with_rank(0)).next_info_state(Action::Check, HoleCards::new_with_rank(0));
+        let player_cards = PlayerCards::new(HoleCards::new_with_rank(0), HoleCards::new_with_rank(1));
+        let info_state = InfoState::new(player_cards).next_info_state(Action::Check);
         let actions = kuhn.get_legal_actions(&info_state);
         assert_eq!(actions, vec![Action::Check, Action::Bet(50)]);
     }
@@ -85,7 +88,8 @@ mod tests {
     #[test]
     fn test_legal_actions_after_bet() {
         let kuhn = Kuhn::new();
-        let info_state = InfoState::new(HoleCards::new_with_rank(0)).next_info_state(Action::Bet(50), HoleCards::new_with_rank(0));
+        let player_cards = PlayerCards::new(HoleCards::new_with_rank(0), HoleCards::new_with_rank(0));
+        let info_state = InfoState::new(player_cards).next_info_state(Action::Bet(50));
         let actions = kuhn.get_legal_actions(&info_state);
         assert_eq!(actions, vec![Action::Call, Action::Fold]);
     }
@@ -93,7 +97,8 @@ mod tests {
     #[test]
     fn test_player_wins_xx() {
         let kuhn = Kuhn::new();
-        let node = Node::new(&kuhn, HoleCards::new_with_rank(0), HoleCards::new_with_rank(1));
+        let player_cards = PlayerCards::new(HoleCards::new_with_rank(0), HoleCards::new_with_rank(1));
+        let node = Node::new(&kuhn, player_cards);
         let next_node = node.next_node(&kuhn, Action::Check, 1.0);
         let next_node = next_node.next_node(&kuhn, Action::Check, 1.0);
         assert_eq!((next_node.player(), kuhn.player_wins(&next_node)), (Player::OOP, Some(true)));
@@ -102,7 +107,8 @@ mod tests {
     #[test]
     fn test_player_wins_xbf() {
         let kuhn = Kuhn::new();
-        let node = Node::new(&kuhn, HoleCards::new_with_rank(0), HoleCards::new_with_rank(1));
+        let player_cards = PlayerCards::new(HoleCards::new_with_rank(0), HoleCards::new_with_rank(1));
+        let node = Node::new(&kuhn, player_cards);
         let next_node = node.next_node(&kuhn, Action::Check, 1.0);
         let next_node = next_node.next_node(&kuhn, Action::Bet(50), 1.0);
         let next_node = next_node.next_node(&kuhn, Action::Fold, 1.0);
@@ -112,7 +118,8 @@ mod tests {
     #[test]
     fn test_player_wins_xbc() {
         let kuhn = Kuhn::new();
-        let node = Node::new(&kuhn, HoleCards::new_with_rank(0), HoleCards::new_with_rank(1));
+        let player_cards = PlayerCards::new(HoleCards::new_with_rank(0), HoleCards::new_with_rank(1));
+        let node = Node::new(&kuhn, player_cards);
         let next_node = node.next_node(&kuhn, Action::Check, 1.0);
         let next_node = next_node.next_node(&kuhn, Action::Bet(50), 1.0);
         let next_node = next_node.next_node(&kuhn, Action::Call, 1.0);
@@ -122,7 +129,8 @@ mod tests {
     #[test]
     fn test_player_wins_bf() {
         let kuhn = Kuhn::new();
-        let node = Node::new(&kuhn, HoleCards::new_with_rank(0), HoleCards::new_with_rank(1));
+        let player_cards = PlayerCards::new(HoleCards::new_with_rank(0), HoleCards::new_with_rank(1));
+        let node = Node::new(&kuhn, player_cards);
         let next_node = node.next_node(&kuhn, Action::Bet(50), 1.0);
         let next_node = next_node.next_node(&kuhn, Action::Fold, 1.0);
         assert_eq!((next_node.player(), kuhn.player_wins(&next_node)), (Player::OOP, Some(true)));
@@ -131,7 +139,8 @@ mod tests {
     #[test]
     fn test_player_wins_bc() {
         let kuhn = Kuhn::new();
-        let node = Node::new(&kuhn, HoleCards::new_with_rank(0), HoleCards::new_with_rank(1));
+        let player_cards = PlayerCards::new(HoleCards::new_with_rank(0), HoleCards::new_with_rank(1));
+        let node = Node::new(&kuhn, player_cards);
         let next_node = node.next_node(&kuhn, Action::Bet(50), 1.0);
         let next_node = next_node.next_node(&kuhn, Action::Call, 1.0);
         assert_eq!((next_node.player(), kuhn.player_wins(&next_node)), (Player::OOP, Some(true)));

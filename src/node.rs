@@ -4,32 +4,25 @@ use crate::game::Game;
 use crate::player::Player;
 use crate::info_state::InfoState;
 use crate::action::Action;
+use crate::player_cards::PlayerCards;
 use crate::pot::Pot;
-use crate::street::Street;
-use crate::board::Board;
 
 #[derive(Clone, Debug)]
 pub struct Node {
     pub info_state: InfoState,
     pub reach_prob: HashMap<Player, f64>,
-    pub cards: HashMap<Player, HoleCards>,
     pub actions: Vec<Action>,
     pub pot: Pot,
-    pub street: Street,
-    pub board: Board,
 }
 
 impl Node {
-    pub fn new<G: Game>(game: &G, ip_cards: HoleCards, oop_cards: HoleCards) -> Node {
-        let info_state = InfoState::new(oop_cards.clone());
+    pub fn new<G: Game>(game: &G, cards: PlayerCards) -> Node {
+        let info_state = InfoState::new(cards);
         Node {
             actions: game.get_legal_actions(&info_state),
             info_state,
             reach_prob: HashMap::from([(Player::IP, 1.0), (Player::OOP, 1.0)]),
-            cards: HashMap::from([(Player::IP, ip_cards), (Player::OOP, oop_cards)]),
             pot: game.initial_pot(),
-            street: Street::Preflop,
-            board: Board::new(),
         }
     }
 
@@ -50,11 +43,11 @@ impl Node {
     }
 
     pub fn player_cards(&self) -> HoleCards {
-        self.cards[&self.player()].clone()
+        self.info_state.player_cards()
     }
 
     pub fn opponent_cards(&self) -> HoleCards {
-        self.cards[&self.player().opponent()].clone()
+        self.info_state.opponent_cards()
     }
 
     pub fn zero_utils(&self) -> Vec<f64> {
@@ -63,7 +56,7 @@ impl Node {
 
     pub fn next_node<G: Game>(&self, game: &G, action: Action, action_prob: f64) -> Node {
         let mut next_node: Node = self.clone();
-        next_node.info_state = next_node.info_state.next_info_state(action, self.opponent_cards());
+        next_node.info_state = next_node.info_state.next_info_state(action);
         next_node.reach_prob.insert(self.player(), self.player_reach_prob() * action_prob);
         next_node.actions = game.get_legal_actions(&next_node.info_state);
         next_node.pot.update(self.player(), action);
@@ -78,14 +71,16 @@ mod tests {
 
     #[test]
     fn test_new() {
-        let node = Node::new(&Kuhn::new(), HoleCards::new_with_rank(1), HoleCards::new_with_rank(2));
+        let player_cards = PlayerCards::new(HoleCards::new_with_rank(1), HoleCards::new_with_rank(2));
+        let node = Node::new(&Kuhn::new(), player_cards);
         assert_eq!(node.reach_prob[&Player::IP], 1.0);
         assert_eq!(node.reach_prob[&Player::OOP], 1.0);
     }
 
     #[test]
     fn test_reach_prob() {
-        let node = Node::new(&Kuhn::new(), HoleCards::new_with_rank(1), HoleCards::new_with_rank(2));
+        let player_cards = PlayerCards::new(HoleCards::new_with_rank(1), HoleCards::new_with_rank(2));
+        let node = Node::new(&Kuhn::new(), player_cards);
         assert_eq!(node.player_reach_prob(), 1.0);
         assert_eq!(node.opponent_reach_prob(), 1.0);
 
@@ -101,7 +96,8 @@ mod tests {
 
     #[test]
     fn test_next_node() {
-        let node = Node::new(&Kuhn::new(), HoleCards::new_with_rank(1), HoleCards::new_with_rank(2));
+        let player_cards = PlayerCards::new(HoleCards::new_with_rank(1), HoleCards::new_with_rank(2));
+        let node = Node::new(&Kuhn::new(), player_cards);
         let next_node = node.next_node(&Kuhn::new(), Action::Bet(50), 0.5);
         assert_eq!(next_node.reach_prob[&Player::OOP], 0.5);
         assert_eq!(next_node.reach_prob[&Player::IP], 1.0);
@@ -114,7 +110,8 @@ mod tests {
     fn test_player_cards() {
         let ip_cards = HoleCards::new_with_rank(1);
         let oop_cards = HoleCards::new_with_rank(2);
-        let node = Node::new(&Kuhn::new(), ip_cards.clone(), oop_cards.clone());
+        let player_cards = PlayerCards::new(ip_cards.clone(), oop_cards.clone());
+        let node = Node::new(&Kuhn::new(), player_cards);
         assert_eq!(node.player_cards(), oop_cards);
         assert_eq!(node.opponent_cards(), ip_cards);
 

@@ -25,8 +25,8 @@ impl<G: Game> CFR<G> {
     pub fn train(&mut self, iterations: usize) -> f64 {
         let mut ev = 0.0;
         for _ in 0..iterations {
-            let (ip_cards, oop_cards, _) = self.game.deal(&mut self.rng);
-            ev += self.cfr(Node::new(&self.game, ip_cards, oop_cards));
+            let (cards, _) = self.game.deal(&mut self.rng);
+            ev += self.cfr(Node::new(&self.game, cards));
         }
 
         return ev / iterations as f64;
