@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 use crate::hole_cards::HoleCards;
-use crate::kuhn::Kuhn;
+use crate::game::Game;
 use crate::player::Player;
 use crate::info_state::InfoState;
 use crate::action::Action;
@@ -16,7 +16,7 @@ pub struct Node {
 }
 
 impl Node {
-    pub fn new(game: &Kuhn, ip_cards: HoleCards, oop_cards: HoleCards) -> Node {
+    pub fn new<G: Game>(game: &G, ip_cards: HoleCards, oop_cards: HoleCards) -> Node {
         let info_state = InfoState::new(oop_cards.clone());
         Node {
             actions: game.get_legal_actions(&info_state),
@@ -55,7 +55,7 @@ impl Node {
         vec![0.0; self.actions.len()]
     }
 
-    pub fn next_node(&self, game: &Kuhn, action: Action, action_prob: f64) -> Node {
+    pub fn next_node<G: Game>(&self, game: &G, action: Action, action_prob: f64) -> Node {
         let mut next_node: Node = self.clone();
         next_node.info_state = next_node.info_state.next_info_state(action, self.opponent_cards());
         next_node.reach_prob.insert(self.player(), self.player_reach_prob() * action_prob);
@@ -68,6 +68,7 @@ impl Node {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::kuhn::Kuhn;
 
     #[test]
     fn test_new() {

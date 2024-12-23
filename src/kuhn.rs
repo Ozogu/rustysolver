@@ -1,12 +1,11 @@
-use rand::rngs::StdRng;
 use crate::action::Action;
-use crate::hole_cards::HoleCards;
 use crate::info_state::InfoState;
 use crate::node::Node;
 use crate::deck::Deck;
 use crate::card::Card;
 use crate::suit::Suit;
 use crate::pot::Pot;
+use crate::game::Game;
 
 #[derive(Clone, Debug)]
 pub struct Kuhn {}
@@ -15,38 +14,22 @@ impl Kuhn {
     pub fn new() -> Self {
         Kuhn {}
     }
+}
 
-    pub fn initial_pot(&self) -> Pot {
+impl Game for Kuhn {
+    fn initial_pot(&self) -> Pot {
         Pot::new(1.0, 1.0)
     }
 
-    pub fn deck(&self) -> Deck {
+    fn deck(&self) -> Deck {
         Deck::new_from_cards(vec![
             Card::new(0, Suit::Diamonds),
             Card::new(1, Suit::Diamonds),
             Card::new(2, Suit::Diamonds),
         ])
-    } 
-
-    pub fn shuffled_cards(&self, rng: &mut StdRng) -> Deck {
-        let mut cards = self.deck();
-        cards.shuffle(rng);
-        cards.reverse();
-        cards
     }
 
-    pub fn deal(&self, rng: &mut StdRng) -> (HoleCards, HoleCards, Deck) {
-        let mut cards = self.shuffled_cards(rng);
-        let card1 = cards.draw().unwrap();
-        let card2 = cards.draw().unwrap();
-
-        let ip_cards = HoleCards::new_with_rank(card1.rank);
-        let oop_cards = HoleCards::new_with_rank(card2.rank);
-    
-        (ip_cards, oop_cards, cards)
-    }
-
-    pub fn get_legal_actions(&self, info_state: &InfoState) -> Vec<Action> {
+    fn get_legal_actions(&self, info_state: &InfoState) -> Vec<Action> {
         // At root there will be no history
         let last = info_state.last().unwrap_or(&Action::Check);
         match last {
@@ -56,17 +39,17 @@ impl Kuhn {
         }
     }
 
-    pub fn player_wins(&self, node: &Node) -> Option<bool> {
+    fn player_wins(&self, node: &Node) -> Option<bool> {
         let last = node.info_state.last().unwrap();
         match last {
             Action::Fold => Some(true),
             Action::Check | Action::Call => {
-            let result = node.player_cards().partial_cmp(&node.opponent_cards());
-            match result {
-                Some(std::cmp::Ordering::Greater) => Some(true),
-                Some(std::cmp::Ordering::Less) => Some(false),
-                _ => None,
-            }
+                let result = node.player_cards().partial_cmp(&node.opponent_cards());
+                match result {
+                    Some(std::cmp::Ordering::Greater) => Some(true),
+                    Some(std::cmp::Ordering::Less) => Some(false),
+                    _ => None,
+                }
             }
             _ => panic!("Invalid action: {:?}", last),
         }
@@ -75,8 +58,9 @@ impl Kuhn {
 
 #[cfg(test)]
 mod tests {
-    use crate::player::Player;
     use super::*;
+    use crate::player::Player;
+    use crate::hole_cards::HoleCards;
 
     #[test]
     fn test_legal_actions_at_root() {

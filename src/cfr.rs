@@ -2,18 +2,18 @@ use std::collections::HashMap;
 use rand::SeedableRng;
 use rand::rngs::StdRng;
 use crate::info_state::InfoState;
-use crate::kuhn::Kuhn;
+use crate::game::Game;
 use crate::node::Node;
 
-pub struct CFR {
-    game: Kuhn,
+pub struct CFR<G: Game> {
+    game: G,
     regrets: HashMap<InfoState, Vec<f64>>,
     strategy_sum: HashMap<InfoState, Vec<f64>>,
     rng: StdRng,
 }
 
-impl CFR {
-    pub fn new(game: Kuhn) -> Self {
+impl<G: Game> CFR<G> {
+    pub fn new(game: G) -> Self {
         CFR {
             game,
             regrets: HashMap::new(),
