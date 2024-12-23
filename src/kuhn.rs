@@ -61,7 +61,7 @@ impl Kuhn {
     pub fn player_wins(&self, node: &Node) -> Option<bool> {
         let last = node.info_state.last().unwrap();
         if last == &Action::Fold {
-            Some(false)
+            Some(true)
         } else if last == &Action::Check || last == &Action::Call {
             if node.player_cards() > node.opponent_cards() {
                 Some(true)
@@ -74,33 +74,11 @@ impl Kuhn {
             panic!("Invalid action: {:?}", last);
         }
     }
-
-    pub fn get_payoff(&self, node: &Node) -> f64 {
-        let info_state = &node.info_state;
-        let actions: Vec<Action> = info_state.history().to_vec();
-        if actions == vec![Action::Check, Action::Check] {
-            if node.player_cards() > node.opponent_cards() {
-                1.0
-            } else {
-                -1.0
-            }
-        } else if actions == vec![Action::Bet(50), Action::Fold] || actions == vec![Action::Check, Action::Bet(50), Action::Fold] {
-            1.0
-        } else if actions == vec![Action::Bet(50), Action::Call] || actions == vec![Action::Check, Action::Bet(50), Action::Call] {
-            if node.player_cards() > node.opponent_cards() {
-                2.0
-            } else {
-                -2.0
-            }
-        } else {
-            panic!("Invalid game state: history {:?}, player cards {:?}, opponent cards {:?}",
-                actions, node.player_cards(), node.opponent_cards());
-        }
-    }
 }
 
 #[cfg(test)]
 mod tests {
+    use crate::player::Player;
     use super::*;
 
     #[test]
@@ -125,5 +103,52 @@ mod tests {
         let info_state = InfoState::new(HoleCards::new_with_rank(0)).next_info_state(Action::Bet(50), HoleCards::new_with_rank(0));
         let actions = kuhn.get_legal_actions(&info_state);
         assert_eq!(actions, vec![Action::Call, Action::Fold]);
+    }
+
+    #[test]
+    fn test_player_wins_xx() {
+        let kuhn = Kuhn::new();
+        let node = Node::new(&kuhn, HoleCards::new_with_rank(0), HoleCards::new_with_rank(1));
+        let next_node = node.next_node(&kuhn, Action::Check, 1.0);
+        let next_node = next_node.next_node(&kuhn, Action::Check, 1.0);
+        assert_eq!((next_node.player(), kuhn.player_wins(&next_node)), (Player::OOP, Some(true)));
+    }
+
+    #[test]
+    fn test_player_wins_xbf() {
+        let kuhn = Kuhn::new();
+        let node = Node::new(&kuhn, HoleCards::new_with_rank(0), HoleCards::new_with_rank(1));
+        let next_node = node.next_node(&kuhn, Action::Check, 1.0);
+        let next_node = next_node.next_node(&kuhn, Action::Bet(50), 1.0);
+        let next_node = next_node.next_node(&kuhn, Action::Fold, 1.0);
+        assert_eq!((next_node.player(), kuhn.player_wins(&next_node)), (Player::IP, Some(true)));
+    }
+
+    #[test]
+    fn test_player_wins_xbc() {
+        let kuhn = Kuhn::new();
+        let node = Node::new(&kuhn, HoleCards::new_with_rank(0), HoleCards::new_with_rank(1));
+        let next_node = node.next_node(&kuhn, Action::Check, 1.0);
+        let next_node = next_node.next_node(&kuhn, Action::Bet(50), 1.0);
+        let next_node = next_node.next_node(&kuhn, Action::Call, 1.0);
+        assert_eq!((next_node.player(), kuhn.player_wins(&next_node)), (Player::IP, Some(false)));
+    }
+
+    #[test]
+    fn test_player_wins_bf() {
+        let kuhn = Kuhn::new();
+        let node = Node::new(&kuhn, HoleCards::new_with_rank(0), HoleCards::new_with_rank(1));
+        let next_node = node.next_node(&kuhn, Action::Bet(50), 1.0);
+        let next_node = next_node.next_node(&kuhn, Action::Fold, 1.0);
+        assert_eq!((next_node.player(), kuhn.player_wins(&next_node)), (Player::OOP, Some(true)));
+    }
+
+    #[test]
+    fn test_player_wins_bc() {
+        let kuhn = Kuhn::new();
+        let node = Node::new(&kuhn, HoleCards::new_with_rank(0), HoleCards::new_with_rank(1));
+        let next_node = node.next_node(&kuhn, Action::Bet(50), 1.0);
+        let next_node = next_node.next_node(&kuhn, Action::Call, 1.0);
+        assert_eq!((next_node.player(), kuhn.player_wins(&next_node)), (Player::OOP, Some(true)));
     }
 }
