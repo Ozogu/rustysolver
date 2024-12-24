@@ -41,7 +41,7 @@ impl Game for Kuhn {
         // At root there will be no history
         let last = history.last().unwrap_or(&Action::Check);
         match last {
-            Action::Check | Action::Call => vec![Action::Check, Action::Bet(50)],
+            Action::Check => vec![Action::Check, Action::Bet(50)],
             Action::Bet(50) => vec![Action::Call, Action::Fold],
             _ => vec![],
         }

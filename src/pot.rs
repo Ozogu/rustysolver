@@ -20,7 +20,7 @@ impl Pot {
 
     pub fn update(&mut self, player: Player, action: Action) {
         match action {
-            Action::Check | Action::Fold => (),
+            Action::Check | Action::Fold | Action::None => (),
             Action::Bet(amount) => {
                 *self.pot.get_mut(&player).unwrap() +=
                     self.bet_amount(self.total(), amount);

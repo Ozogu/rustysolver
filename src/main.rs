@@ -9,6 +9,7 @@ fn main() {
     cfr.print_strategy();
 
     let statistics = cfr.build_statistics();
-    let statistics_ev = statistics.get_node_util(&History::new());
-    println!("Statistics EV: {}", statistics_ev);
+    let strategy_ev = statistics.get_node_util(&History::new());
+    let br_ev = statistics.get_node_br_util(&History::new());
+    println!("Strategy EV: {}, BR EV: {}", strategy_ev, br_ev);
 }

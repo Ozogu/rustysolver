@@ -5,6 +5,7 @@ pub enum Action {
     Call,
     Bet(u32),
     Raise(u32),
+    None,
 }
 
 impl Action {
@@ -15,6 +16,7 @@ impl Action {
             Action::Bet(amount) => format!("b{}", amount),
             Action::Raise(amount) => format!("r{}", amount),
             Action::Check => "x".to_string(),
+            Action::None => "-".to_string(),
         }
     }
 }

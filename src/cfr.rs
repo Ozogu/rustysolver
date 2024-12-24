@@ -60,16 +60,17 @@ impl<G: Game> CFR<G> {
                 self.iterate_statistics(node, &mut statistics);
             }
         }
-        statistics.finalize();
+        statistics.finalize(&self.game);
 
         statistics
     }
 
     fn iterate_statistics(&self, node: Node, statistics: &mut Statistics) -> f64 {
         if node.is_terminal() {
-            statistics.update_node_utils(&node, self.get_payoff(&node), node.zero_utils());
+            let payoff = self.get_payoff(&node);
+            statistics.update_node(&node, payoff, node.zero_utils());
 
-            return self.get_payoff(&node);
+            return payoff;
         }
 
         let strategy = self.get_average_strategy(&node.info_state()).unwrap();
@@ -82,7 +83,7 @@ impl<G: Game> CFR<G> {
             node_util += strategy[i] * action_utils[i];
         }
 
-        statistics.update_node_utils(&node, node_util, action_utils);
+        statistics.update_node(&node, node_util, action_utils);
 
         node_util
     }
