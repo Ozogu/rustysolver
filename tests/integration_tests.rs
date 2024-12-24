@@ -29,6 +29,10 @@ fn test_kuhn_poker_ev() {
     debug_assert!(br_util_diff < 0.01, 
         "BR Util: {:.4}, Ideal: {:.4}, Diff: {:.4}",
         br_util, ideal_ev, br_util_diff);
+
+    let exploitability = statistics.get_node_exploitability(&root);
+    debug_assert!(exploitability < 15.0, "Exploitability: {:.4} %", exploitability);
+
 }
 
 #[test]

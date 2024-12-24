@@ -5,11 +5,12 @@ use rustysolver::history::History;
 fn main() {
     let mut cfr = CFR::new(Kuhn::new());
     let ev = cfr.train(100000);
-    println!("Expected value: {}", ev);
+    println!("Expected value: {:.4}", ev);
     cfr.print_strategy();
 
     let statistics = cfr.build_statistics();
     let strategy_ev = statistics.get_node_util(&History::new());
     let br_ev = statistics.get_node_br_util(&History::new());
-    println!("Strategy EV: {}, BR EV: {}", strategy_ev, br_ev);
+    let explitability = statistics.get_node_exploitability(&History::new());
+    println!("Strategy EV: {:.4}, BR EV: {:.4} Exploitability: {:.2} %", strategy_ev, br_ev, explitability);
 }

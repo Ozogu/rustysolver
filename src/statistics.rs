@@ -95,7 +95,25 @@ impl Statistics {
     pub fn to_map(&self) -> HashMap<InfoState, StatisticsNode> {
         self.nodes.clone()
     }
-    
+
+    pub fn get_node_exploitability(&self, history: &History) -> f64 {
+        let mut node_util = 0.0;
+        let mut node_br_util = 0.0;
+        let mut updates = 0;
+        for (info_state, node) in self.nodes.iter() {
+            if &info_state.history == history {
+                node_util += node.util;
+                node_br_util += node.br_util;
+                updates += 1;
+            }
+        }
+
+        node_util /= updates as f64;
+        node_br_util /= updates as f64;
+
+        (node_br_util - node_util) / node_util.abs() * 100.0
+    }
+
     fn find_best_reponse<G: Game>(game: &G, info_state: &InfoState, node: &StatisticsNode) -> (f64, Action) {
         let mut br_util = f64::NEG_INFINITY;
         let mut best_reponse = Action::None;        
