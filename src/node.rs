@@ -170,7 +170,7 @@ mod tests {
             Deck::new_empty()
         );
         let node = Node::new(&Leduc::new(), deal);
-        let next_node = node.next_street_node(&Kuhn::new(), Street::Flop(Board::new()));
+        let next_node = node.next_street_node(&Leduc::new(), Street::Flop(Board::new()));
         assert_eq!(next_node.history.street().is_flop(), true);
         assert_eq!(next_node.player, Player::OOP);
         assert_eq!(next_node.actions, Leduc::new().legal_actions(

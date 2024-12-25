@@ -47,11 +47,14 @@ impl Game for Leduc {
         let last = history.last().unwrap_or(&HistoryNode::Action(Action::Check));
         let default = vec![Action::Check, Action::Bet(Bet::C(2)), Action::Bet(Bet::C(4))];
 
+        if last.is_street() {
+            return default;
+        }
+
         match last.action() {
             Action::Check => default,
             Action::Bet(_) => vec![Action::Fold, Action::Call, Action::Raise(Bet::C(2)), Action::Raise(Bet::C(4))],
             Action::Raise(_) => vec![Action::Fold, Action::Call],
-            Action::None => if last.is_street() { default } else { vec![] },
             _ => vec![],
         }
 
