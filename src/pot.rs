@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 use crate::player::Player;
 use crate::action::Action;
+use crate::bet::Bet;
 
 #[derive(Clone, Debug)]
 pub struct Pot {
@@ -21,14 +22,22 @@ impl Pot {
     pub fn update(&mut self, player: Player, action: Action) {
         match action {
             Action::Check | Action::Fold | Action::None => (),
-            Action::Bet(amount) => {
-                *self.pot.get_mut(&player).unwrap() +=
-                    self.bet_amount(self.total(), amount);
+            Action::Bet(bet) => {
+                let amount = match bet {
+                    Bet::P(p) => self.bet_amount(self.total(), p),
+                    Bet::C(c) => c as f64,
+                };  
+                *self.pot.get_mut(&player).unwrap() += amount;
+                    
             },
             Action::Raise(amount) => {
                 let to_call = self.to_call();
-                *self.pot.get_mut(&player).unwrap() += 
-                    self.bet_amount(self.total() +  to_call, amount) + to_call;
+                let amount = match amount {
+                    Bet::P(p) => self.bet_amount(self.total() +  to_call, p),
+                    Bet::C(c) => c as f64,
+                };
+
+                *self.pot.get_mut(&player).unwrap() += amount + to_call;
             },
             Action::Call => {
                 self.pot.insert(player, self.pot[&player.opponent()]);
@@ -109,14 +118,14 @@ mod tests {
     #[test]
     fn test_update_bet() {
         let mut pot = Pot::new(1.0, 1.0);
-        pot.update(Player::OOP, Action::Bet(50));
+        pot.update(Player::OOP, Action::Bet(Bet::P(50)));
         assert_eq!(pot.pot, HashMap::from([(Player::IP, 1.0), (Player::OOP, 2.0)]));
     }
 
     #[test]
     fn test_update_raise() {
         let mut pot = Pot::new(3.0, 1.0);
-        pot.update(Player::OOP, Action::Raise(50));
+        pot.update(Player::OOP, Action::Raise(Bet::P(50)));
         assert_eq!(pot.pot, HashMap::from([(Player::IP, 3.0), (Player::OOP, 6.0)]));
     }
 
@@ -130,7 +139,7 @@ mod tests {
     #[test]
     fn test_update_bet_call() {
         let mut pot = Pot::new(1.0, 1.0);
-        pot.update(Player::OOP, Action::Bet(50));
+        pot.update(Player::OOP, Action::Bet(Bet::P(50)));
         pot.update(Player::IP, Action::Call);
         assert_eq!(pot.pot, HashMap::from([(Player::IP, 2.0), (Player::OOP, 2.0)]));
     }
@@ -138,16 +147,16 @@ mod tests {
     #[test]
     fn test_update_bet_raise() {
         let mut pot = Pot::new(1.0, 1.0);
-        pot.update(Player::OOP, Action::Bet(100));
-        pot.update(Player::IP, Action::Raise(50));
+        pot.update(Player::OOP, Action::Bet(Bet::P(100)));
+        pot.update(Player::IP, Action::Raise(Bet::P(50)));
         assert_eq!(pot.pot, HashMap::from([(Player::IP, 6.0), (Player::OOP, 3.0)]));
     }
 
     #[test]
     fn test_update_bet_raise_call() {
         let mut pot = Pot::new(1.0, 1.0);
-        pot.update(Player::OOP, Action::Bet(100));
-        pot.update(Player::IP, Action::Raise(50));
+        pot.update(Player::OOP, Action::Bet(Bet::P(100)));
+        pot.update(Player::IP, Action::Raise(Bet::P(50)));
         pot.update(Player::OOP, Action::Call);
         assert_eq!(pot.pot, HashMap::from([(Player::IP, 6.0), (Player::OOP, 6.0)]));
     }

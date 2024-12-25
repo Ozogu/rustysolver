@@ -6,6 +6,7 @@ use crate::suit::Suit;
 use crate::pot::Pot;
 use crate::game::Game;
 use crate::history_node::HistoryNode;
+use crate::bet::Bet;
 
 #[derive(Clone, Debug)]
 pub struct Kuhn {}
@@ -41,14 +42,14 @@ impl Game for Kuhn {
         // At root there will be no history
         let last = history.last().unwrap_or(&HistoryNode::Action(Action::Check)).get_action();
         match last {
-            Action::Check => vec![Action::Check, Action::Bet(50)],
-            Action::Bet(50) => vec![Action::Call, Action::Fold],
+            Action::Check => vec![Action::Check, Action::Bet(Bet::P(50))],
+            Action::Bet(Bet::P(50)) => vec![Action::Call, Action::Fold],
             _ => vec![],
         }
     }
 
     fn get_legal_first_actions() -> Vec<Action> {
-        vec![Action::Check, Action::Bet(50)]
+        vec![Action::Check, Action::Bet(Bet::P(50))]
     }
 }
 
@@ -67,7 +68,7 @@ mod tests {
     fn test_legal_actions_at_root() {
         let kuhn = Kuhn::new();
         let actions = kuhn.get_legal_actions(&History::new());
-        assert_eq!(actions, vec![Action::Check, Action::Bet(50)]);
+        assert_eq!(actions, vec![Action::Check, Action::Bet(Bet::P(50))]);
     }
 
     #[test]
@@ -75,13 +76,13 @@ mod tests {
         let kuhn = Kuhn::new();
         let history = History::new_from_vec(vec![HistoryNode::Action(Action::Check)]);
         let actions = kuhn.get_legal_actions(&history);
-        assert_eq!(actions, vec![Action::Check, Action::Bet(50)]);
+        assert_eq!(actions, vec![Action::Check, Action::Bet(Bet::P(50))]);
     }
 
     #[test]
     fn test_legal_actions_after_bet() {
         let kuhn = Kuhn::new();
-        let history = History::new_from_vec(vec![HistoryNode::Action(Action::Bet(50))]);
+        let history = History::new_from_vec(vec![HistoryNode::Action(Action::Bet(Bet::P(50)))]);
         let actions = kuhn.get_legal_actions(&history);
         assert_eq!(actions, vec![Action::Call, Action::Fold]);
     }
@@ -108,7 +109,7 @@ mod tests {
         );
         let node = Node::new(&kuhn, deal);
         let next_node = node.next_node(&kuhn, Action::Check, 1.0);
-        let next_node = next_node.next_node(&kuhn, Action::Bet(50), 1.0);
+        let next_node = next_node.next_node(&kuhn, Action::Bet(Bet::P(50)), 1.0);
         let next_node = next_node.next_node(&kuhn, Action::Fold, 1.0);
         assert_eq!((next_node.player(), kuhn.player_wins(&next_node)), (Player::IP, Some(true)));
     }
@@ -122,7 +123,7 @@ mod tests {
         );
         let node = Node::new(&kuhn, deal);
         let next_node = node.next_node(&kuhn, Action::Check, 1.0);
-        let next_node = next_node.next_node(&kuhn, Action::Bet(50), 1.0);
+        let next_node = next_node.next_node(&kuhn, Action::Bet(Bet::P(50)), 1.0);
         let next_node = next_node.next_node(&kuhn, Action::Call, 1.0);
         assert_eq!((next_node.player(), kuhn.player_wins(&next_node)), (Player::IP, Some(false)));
     }
@@ -135,7 +136,7 @@ mod tests {
             Deck::new_empty()
         );
         let node = Node::new(&kuhn, deal);
-        let next_node = node.next_node(&kuhn, Action::Bet(50), 1.0);
+        let next_node = node.next_node(&kuhn, Action::Bet(Bet::P(50)), 1.0);
         let next_node = next_node.next_node(&kuhn, Action::Fold, 1.0);
         assert_eq!((next_node.player(), kuhn.player_wins(&next_node)), (Player::OOP, Some(true)));
     }
@@ -148,7 +149,7 @@ mod tests {
             Deck::new_empty()
         );
         let node = Node::new(&kuhn, deal);
-        let next_node = node.next_node(&kuhn, Action::Bet(50), 1.0);
+        let next_node = node.next_node(&kuhn, Action::Bet(Bet::P(50)), 1.0);
         let next_node = next_node.next_node(&kuhn, Action::Call, 1.0);
         assert_eq!((next_node.player(), kuhn.player_wins(&next_node)), (Player::OOP, Some(true)));
     }

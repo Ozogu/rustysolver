@@ -5,6 +5,8 @@ use crate::suit::Suit;
 use crate::card::Card;
 use crate::pot::Pot;
 use crate::action::Action;
+use crate::history_node::HistoryNode;
+use crate::bet::Bet;
 
 #[derive(Clone, Debug)]
 pub struct Leduc {}
@@ -42,10 +44,16 @@ impl Game for Leduc {
     }
 
     fn get_legal_actions(&self, history: &History) -> Vec<Action> {
-        vec![]
+        let last = history.last().unwrap_or(&HistoryNode::Action(Action::Check)).get_action();
+        match last {
+            Action::Check => vec![Action::Check, Action::Bet(Bet::P(50))],
+            Action::Bet(Bet::P(50)) => vec![Action::Call, Action::Fold],
+            _ => vec![],
+        }
+
     }
 
     fn get_legal_first_actions() -> Vec<Action> {
-        vec![Action::Check, Action::Bet(50)]
+        vec![Action::Check, Action::Bet(Bet::P(50))]
     }
 }

@@ -19,3 +19,4 @@ pub mod statistics;
 pub mod game_tree;
 pub mod deal;
 pub mod history_node;
+pub mod bet;

@@ -85,7 +85,9 @@ impl fmt::Display for History {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{board::Board, street::Street};
+    use crate::board::Board;
+    use crate::bet::Bet;
+    
 
     #[test]
     fn test_new() {
@@ -142,7 +144,7 @@ mod tests {
     fn test_is_bet_terminal() {
         let mut history = History::new();
         history.push_action(Action::Fold);
-        history.push_action(Action::Bet(50));
+        history.push_action(Action::Bet(Bet::P(50)));
         assert_eq!(history.is_terminal(), false);
     }
 
@@ -158,7 +160,7 @@ mod tests {
     fn test_is_raise_terminal() {
         let mut history = History::new();
         history.push_action(Action::Fold);
-        history.push_action(Action::Raise(50));
+        history.push_action(Action::Raise(Bet::P(50)));
         assert_eq!(history.is_terminal(), false);
     }
 

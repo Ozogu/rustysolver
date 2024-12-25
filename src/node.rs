@@ -88,6 +88,7 @@ mod tests {
     use super::*;
     use crate::kuhn::Kuhn;
     use crate::history_node::HistoryNode;
+    use crate::bet::Bet;
 
     #[test]
     fn test_new() {
@@ -127,10 +128,10 @@ mod tests {
             Deck::new_empty()
         );
         let node = Node::new(&Kuhn::new(), deal);
-        let next_node = node.next_node(&Kuhn::new(), Action::Bet(50), 0.5);
+        let next_node = node.next_node(&Kuhn::new(), Action::Bet(Bet::P(50)), 0.5);
         assert_eq!(next_node.reach_prob[&Player::OOP], 0.5);
         assert_eq!(next_node.reach_prob[&Player::IP], 1.0);
-        assert_eq!(next_node.actions, Kuhn::new().get_legal_actions(&History::new_from_vec(vec![HistoryNode::Action(Action::Bet(50))])));
+        assert_eq!(next_node.actions, Kuhn::new().get_legal_actions(&History::new_from_vec(vec![HistoryNode::Action(Action::Bet(Bet::P(50)))])));
         assert_eq!(next_node.pot.total(), node.pot.total() + 1.0);
         assert_eq!(next_node.pot.contributions(), HashMap::from([(Player::IP, 1.0), (Player::OOP, 2.0)]));
     }
