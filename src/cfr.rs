@@ -1,12 +1,10 @@
 use std::collections::HashMap;
 use rand::SeedableRng;
 use rand::rngs::StdRng;
-use crate::hole_cards::HoleCards;
 use crate::info_state::InfoState;
 use crate::game::Game;
 use crate::node::Node;
 use crate::statistics::Statistics;
-use crate::player_cards::PlayerCards;
 
 pub struct CFR<G: Game> {
     game: G,
@@ -27,6 +25,7 @@ impl<G: Game> CFR<G> {
 
     pub fn train(&mut self, iterations: usize) -> f64 {
         let mut ev = 0.0;
+        self.tree.build();
         for _ in 0..iterations {
             let (cards, _) = self.game.deal(&mut self.rng);
             ev += self.cfr(Node::new(&self.game, cards));
@@ -44,22 +43,12 @@ impl<G: Game> CFR<G> {
 
     pub fn build_statistics(&self) -> Statistics {
         let mut statistics = Statistics::new();
-        let mut deck = self.game.deck();
-        
-        for _ in 0..deck.len() {
-            let card = deck.draw().unwrap().rank;
-            let cards1 = HoleCards::new_with_rank(card);
-            let mut deck_clone = deck.clone();
-            for _ in 0..deck_clone.len() {
-                let card = deck_clone.draw().unwrap().rank;
-                let cards2 = HoleCards::new_with_rank(card);
 
-                let node  = Node::new(&self.game, PlayerCards::new(cards1.clone(), cards2.clone()));
-                self.iterate_statistics(node, &mut statistics);
-                let node = Node::new(&self.game, PlayerCards::new(cards2.clone(), cards1.clone()));
-                self.iterate_statistics(node, &mut statistics);
-            }
+        for root in self.game.generate_roots() {
+            let node = Node::new(&self.game, root);
+            self.iterate_statistics(node, &mut statistics);
         }
+        
         statistics.finalize(&self.game);
 
         statistics
@@ -111,11 +100,11 @@ impl<G: Game> CFR<G> {
     }
 
     fn get_strategy(&mut self, node: &Node) -> Vec<f64> {
-        let actions = self.regrets.get(&node.info_state()).unwrap();
+        let regrets = self.regrets.get(&node.info_state()).unwrap();
         let mut strategy: Vec<f64> = node.zero_utils();
         let mut normalizing_sum = 0.0;
 
-        for (i, regret) in actions.iter().enumerate() {
+        for (i, regret) in regrets.iter().enumerate() {
             strategy[i] = if *regret > 0.0 { *regret } else { 0.0 };
             normalizing_sum += strategy[i];
         }

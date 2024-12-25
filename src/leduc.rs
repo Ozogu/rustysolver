@@ -7,6 +7,7 @@ use crate::pot::Pot;
 use crate::action::Action;
 use crate::node::Node;
 
+#[derive(Clone, Debug)]
 pub struct Leduc {}
 
 impl Leduc {
@@ -47,5 +48,9 @@ impl Game for Leduc {
 
     fn player_wins(&self, node: &Node) -> Option<bool> {
         None
+    }
+
+    fn generate_roots(&self) -> Vec<crate::player_cards::PlayerCards> {
+        vec![]
     }
 }

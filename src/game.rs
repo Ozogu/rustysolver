@@ -14,6 +14,7 @@ pub trait Game {
     fn player_wins(&self, node: &Node) -> Option<bool>;
     fn num_streets(&self) -> u8;
     fn num_hole_cards(&self) -> u8;
+    fn generate_roots(&self) -> Vec<PlayerCards>;
 
     fn shuffled_cards(&self, rng: &mut StdRng) -> Deck {
         let mut cards = self.deck();

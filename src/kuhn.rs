@@ -6,6 +6,8 @@ use crate::card::Card;
 use crate::suit::Suit;
 use crate::pot::Pot;
 use crate::game::Game;
+use crate::player_cards::PlayerCards;
+use crate::hole_cards::HoleCards;
 
 #[derive(Clone, Debug)]
 pub struct Kuhn {}
@@ -35,6 +37,26 @@ impl Game for Kuhn {
             Card::new(1, Suit::Diamonds),
             Card::new(2, Suit::Diamonds),
         ])
+    }
+
+    fn generate_roots(&self) -> Vec<crate::player_cards::PlayerCards> {
+        let mut roots = Vec::new();
+        let mut deck = self.deck();
+        
+        for _ in 0..deck.len() {
+            let card = deck.draw().unwrap().rank;
+            let cards1 = HoleCards::new_with_rank(card);
+            let mut deck_clone = deck.clone();
+            for _ in 0..deck_clone.len() {
+                let card = deck_clone.draw().unwrap().rank;
+                let cards2 = HoleCards::new_with_rank(card);
+
+                roots.push(PlayerCards::new(cards1.clone(), cards2.clone()));
+                roots.push(PlayerCards::new(cards2.clone(), cards1.clone()));
+            }
+        }
+
+        roots
     }
 
     fn get_legal_actions(&self, history: &History) -> Vec<Action> {
