@@ -8,6 +8,7 @@ use crate::pot::Pot;
 use crate::game::Game;
 use crate::player_cards::PlayerCards;
 use crate::hole_cards::HoleCards;
+use crate::deal::Deal;
 
 #[derive(Clone, Debug)]
 pub struct Kuhn {}
@@ -39,8 +40,8 @@ impl Game for Kuhn {
         ])
     }
 
-    fn generate_roots(&self) -> Vec<crate::player_cards::PlayerCards> {
-        let mut roots = Vec::new();
+    fn generate_deals(&self) -> Vec<Deal> {
+        let mut deals = Vec::new();
         let mut deck = self.deck();
         
         for _ in 0..deck.len() {
@@ -50,13 +51,16 @@ impl Game for Kuhn {
             for _ in 0..deck_clone.len() {
                 let card = deck_clone.draw().unwrap().rank;
                 let cards2 = HoleCards::new_with_rank(card);
+                
+                let deal1 = Deal::new(PlayerCards::new(cards1.clone(), cards2.clone()), deck.clone());
+                let deal2 = Deal::new(PlayerCards::new(cards2.clone(), cards1.clone()), deck.clone());
 
-                roots.push(PlayerCards::new(cards1.clone(), cards2.clone()));
-                roots.push(PlayerCards::new(cards2.clone(), cards1.clone()));
+                deals.push(deal1);
+                deals.push(deal2);
             }
         }
 
-        roots
+        deals
     }
 
     fn get_legal_actions(&self, history: &History) -> Vec<Action> {
@@ -119,8 +123,11 @@ mod tests {
     #[test]
     fn test_player_wins_xx() {
         let kuhn = Kuhn::new();
-        let player_cards = PlayerCards::new(HoleCards::new_with_rank(0), HoleCards::new_with_rank(1));
-        let node = Node::new(&kuhn, player_cards);
+        let deal = Deal::new(
+            PlayerCards::new(HoleCards::new_with_rank(0), HoleCards::new_with_rank(1)),
+            Deck::new_empty()
+        );
+        let node = Node::new(&kuhn, deal);
         let next_node = node.next_node(&kuhn, Action::Check, 1.0);
         let next_node = next_node.next_node(&kuhn, Action::Check, 1.0);
         assert_eq!((next_node.player(), kuhn.player_wins(&next_node)), (Player::OOP, Some(true)));
@@ -129,8 +136,11 @@ mod tests {
     #[test]
     fn test_player_wins_xbf() {
         let kuhn = Kuhn::new();
-        let player_cards = PlayerCards::new(HoleCards::new_with_rank(0), HoleCards::new_with_rank(1));
-        let node = Node::new(&kuhn, player_cards);
+        let deal = Deal::new(
+            PlayerCards::new(HoleCards::new_with_rank(0), HoleCards::new_with_rank(1)),
+            Deck::new_empty()
+        );
+        let node = Node::new(&kuhn, deal);
         let next_node = node.next_node(&kuhn, Action::Check, 1.0);
         let next_node = next_node.next_node(&kuhn, Action::Bet(50), 1.0);
         let next_node = next_node.next_node(&kuhn, Action::Fold, 1.0);
@@ -140,8 +150,11 @@ mod tests {
     #[test]
     fn test_player_wins_xbc() {
         let kuhn = Kuhn::new();
-        let player_cards = PlayerCards::new(HoleCards::new_with_rank(0), HoleCards::new_with_rank(1));
-        let node = Node::new(&kuhn, player_cards);
+        let deal = Deal::new(
+            PlayerCards::new(HoleCards::new_with_rank(0), HoleCards::new_with_rank(1)),
+            Deck::new_empty()
+        );
+        let node = Node::new(&kuhn, deal);
         let next_node = node.next_node(&kuhn, Action::Check, 1.0);
         let next_node = next_node.next_node(&kuhn, Action::Bet(50), 1.0);
         let next_node = next_node.next_node(&kuhn, Action::Call, 1.0);
@@ -151,8 +164,11 @@ mod tests {
     #[test]
     fn test_player_wins_bf() {
         let kuhn = Kuhn::new();
-        let player_cards = PlayerCards::new(HoleCards::new_with_rank(0), HoleCards::new_with_rank(1));
-        let node = Node::new(&kuhn, player_cards);
+        let deal = Deal::new(
+            PlayerCards::new(HoleCards::new_with_rank(0), HoleCards::new_with_rank(1)),
+            Deck::new_empty()
+        );
+        let node = Node::new(&kuhn, deal);
         let next_node = node.next_node(&kuhn, Action::Bet(50), 1.0);
         let next_node = next_node.next_node(&kuhn, Action::Fold, 1.0);
         assert_eq!((next_node.player(), kuhn.player_wins(&next_node)), (Player::OOP, Some(true)));
@@ -161,8 +177,11 @@ mod tests {
     #[test]
     fn test_player_wins_bc() {
         let kuhn = Kuhn::new();
-        let player_cards = PlayerCards::new(HoleCards::new_with_rank(0), HoleCards::new_with_rank(1));
-        let node = Node::new(&kuhn, player_cards);
+        let deal = Deal::new(
+            PlayerCards::new(HoleCards::new_with_rank(0), HoleCards::new_with_rank(1)),
+            Deck::new_empty()
+        );
+        let node = Node::new(&kuhn, deal);
         let next_node = node.next_node(&kuhn, Action::Bet(50), 1.0);
         let next_node = next_node.next_node(&kuhn, Action::Call, 1.0);
         assert_eq!((next_node.player(), kuhn.player_wins(&next_node)), (Player::OOP, Some(true)));

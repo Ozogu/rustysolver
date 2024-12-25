@@ -25,10 +25,9 @@ impl<G: Game> CFR<G> {
 
     pub fn train(&mut self, iterations: usize) -> f64 {
         let mut ev = 0.0;
-        self.tree.build();
         for _ in 0..iterations {
-            let (cards, _) = self.game.deal(&mut self.rng);
-            ev += self.cfr(Node::new(&self.game, cards));
+            let deal = self.game.deal(&mut self.rng);
+            ev += self.cfr(Node::new(&self.game, deal));
         }
 
         return ev / iterations as f64;
@@ -44,8 +43,8 @@ impl<G: Game> CFR<G> {
     pub fn build_statistics(&self) -> Statistics {
         let mut statistics = Statistics::new();
 
-        for root in self.game.generate_roots() {
-            let node = Node::new(&self.game, root);
+        for root in self.game.generate_deals() {
+            let node = Node::new(&self.game, root,);
             self.iterate_statistics(node, &mut statistics);
         }
         

@@ -16,3 +16,5 @@ pub mod street;
 pub mod board;
 pub mod player_cards;
 pub mod statistics;
+pub mod game_tree;
+pub mod deal;

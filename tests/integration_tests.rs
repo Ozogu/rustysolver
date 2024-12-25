@@ -41,6 +41,8 @@ fn test_leduc_poker_ev() {
     let ev = cfr.train(12000);
     let ideal_ev = 0.0;
     let ev_diff = (ev - ideal_ev).abs();
+
+    cfr.print_strategy();
     
     debug_assert!(ev_diff < 0.0011, 
         "EV: {:.4}, Ideal: {:.4}, Diff: {:.4}",

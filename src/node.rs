@@ -8,6 +8,9 @@ use crate::player_cards::PlayerCards;
 use crate::pot::Pot;
 use crate::history::History;
 use crate::board::Board;
+use crate::street::Street;
+use crate::deck::Deck;
+use crate::deal::Deal;
 
 #[derive(Clone, Debug)]
 pub struct Node {
@@ -18,18 +21,22 @@ pub struct Node {
     pub player: Player,
     pub cards: PlayerCards,
     pub board: Board,
+    pub street: Street,
+    pub deck: Deck,
 }
 
 impl Node {
-    pub fn new<G: Game>(game: &G, cards: PlayerCards) -> Node {
+    pub fn new<G: Game>(game: &G, deal: Deal) -> Node {
         Node {
             actions: game.get_legal_actions(&History::new()),
             reach_prob: HashMap::from([(Player::IP, 1.0), (Player::OOP, 1.0)]),
             pot: game.initial_pot(),
             history: History::new(),
             player: Player::OOP,
-            cards,
+            cards: deal.cards,
             board: Board::new(),
+            street: Street::Preflop,
+            deck: deal.deck,
         }
     }
 
@@ -83,16 +90,22 @@ mod tests {
 
     #[test]
     fn test_new() {
-        let player_cards = PlayerCards::new(HoleCards::new_with_rank(1), HoleCards::new_with_rank(2));
-        let node = Node::new(&Kuhn::new(), player_cards);
+        let deal = Deal::new(
+            PlayerCards::new(HoleCards::new_with_rank(1), HoleCards::new_with_rank(2)),
+            Deck::new_empty()
+        );
+        let node = Node::new(&Kuhn::new(), deal);
         assert_eq!(node.reach_prob[&Player::IP], 1.0);
         assert_eq!(node.reach_prob[&Player::OOP], 1.0);
     }
 
     #[test]
     fn test_reach_prob() {
-        let player_cards = PlayerCards::new(HoleCards::new_with_rank(1), HoleCards::new_with_rank(2));
-        let node = Node::new(&Kuhn::new(), player_cards);
+        let deal = Deal::new(
+            PlayerCards::new(HoleCards::new_with_rank(1), HoleCards::new_with_rank(2)),
+            Deck::new_empty()
+        );
+        let node = Node::new(&Kuhn::new(), deal);
         assert_eq!(node.player_reach_prob(), 1.0);
         assert_eq!(node.opponent_reach_prob(), 1.0);
 
@@ -108,8 +121,11 @@ mod tests {
 
     #[test]
     fn test_next_node() {
-        let player_cards = PlayerCards::new(HoleCards::new_with_rank(1), HoleCards::new_with_rank(2));
-        let node = Node::new(&Kuhn::new(), player_cards);
+        let deal = Deal::new(
+            PlayerCards::new(HoleCards::new_with_rank(1), HoleCards::new_with_rank(2)),
+            Deck::new_empty()
+        );
+        let node = Node::new(&Kuhn::new(), deal);
         let next_node = node.next_node(&Kuhn::new(), Action::Bet(50), 0.5);
         assert_eq!(next_node.reach_prob[&Player::OOP], 0.5);
         assert_eq!(next_node.reach_prob[&Player::IP], 1.0);
@@ -122,8 +138,8 @@ mod tests {
     fn test_player_cards() {
         let ip_cards = HoleCards::new_with_rank(1);
         let oop_cards = HoleCards::new_with_rank(2);
-        let player_cards = PlayerCards::new(ip_cards.clone(), oop_cards.clone());
-        let node = Node::new(&Kuhn::new(), player_cards);
+        let deal = Deal::new(PlayerCards::new(ip_cards.clone(), oop_cards.clone()), Deck::new_empty());
+        let node = Node::new(&Kuhn::new(), deal);
         assert_eq!(node.player_cards(), oop_cards);
         assert_eq!(node.opponent_cards(), ip_cards);
 
