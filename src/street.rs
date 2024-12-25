@@ -12,7 +12,7 @@ pub enum Street {
 
 impl Street {
     pub fn next_street(&self, card: Card) -> Street {
-        let mut board = self.get_board();
+        let mut board = self.board();
         board.push(card);
         match self {
             Street::Preflop => Street::Flop(board),
@@ -63,7 +63,7 @@ impl Street {
         }
     }
 
-    pub fn get_board(&self) -> Board {
+    pub fn board(&self) -> Board {
         match self {
             Street::Preflop => Board::new(),
             Street::Flop(board) => board.clone(),

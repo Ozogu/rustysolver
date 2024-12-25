@@ -36,8 +36,8 @@ impl<G: Game> CFR<G> {
     pub fn print_strategy(&mut self) {
         let mut strategy = Vec::new();
         for (info_state, _) in &self.regrets {
-            let actions = self.game.get_legal_actions(&info_state.history);
-            let avg_strategy = self.get_average_strategy(info_state).unwrap();
+            let actions = self.game.legal_actions(&info_state.history);
+            let avg_strategy = self.average_strategy(info_state).unwrap();
 
             let mut zip = String::new();
             zip.push_str("[");
@@ -77,13 +77,13 @@ impl<G: Game> CFR<G> {
 
     fn iterate_statistics(&self, node: Node, statistics: &mut Statistics) -> f64 {
         if node.is_terminal(&self.game) {
-            let payoff = self.get_payoff(&node);
+            let payoff = self.payoff(&node);
             statistics.update_node(&node, payoff, node.zero_utils());
 
             return payoff;
         }
 
-        let strategy = self.get_average_strategy(&node.info_state()).unwrap();
+        let strategy = self.average_strategy(&node.info_state()).unwrap();
         let mut action_utils = node.zero_utils();
         let mut node_util = 0.0;
 
@@ -99,7 +99,7 @@ impl<G: Game> CFR<G> {
     }
 
     fn cfr(&mut self, node: Node) -> f64 {
-        if node.is_terminal(&self.game) { return self.get_payoff(&node); }
+        if node.is_terminal(&self.game) { return self.payoff(&node); }
         else if node.is_street_completing_action() {
             let mut node_util = 0.0;
 
@@ -113,7 +113,7 @@ impl<G: Game> CFR<G> {
             return node_util / node.deck.len() as f64;
         } else {
             self.create_node_entry(&node);
-            let strategy = self.get_strategy(&node);
+            let strategy = self.strategy(&node);
             let mut action_util = node.zero_utils();
             let mut node_util = 0.0;
     
@@ -132,7 +132,7 @@ impl<G: Game> CFR<G> {
         }        
     }
 
-    fn get_strategy(&mut self, node: &Node) -> Vec<f64> {
+    fn strategy(&mut self, node: &Node) -> Vec<f64> {
         let regrets = self.regrets.get(&node.info_state()).unwrap();
         let mut strategy: Vec<f64> = node.zero_utils();
         let mut normalizing_sum = 0.0;
@@ -154,7 +154,7 @@ impl<G: Game> CFR<G> {
         strategy
     }
 
-    fn get_average_strategy(&self, info_state: &InfoState) -> Option<Vec<f64>> {
+    fn average_strategy(&self, info_state: &InfoState) -> Option<Vec<f64>> {
         let strategy_sum = self.strategy_sum.get(info_state).unwrap();
         let mut avg_strategy = vec![0.0; strategy_sum.len()];
         let mut normalizing_sum = 0.0;
@@ -180,7 +180,7 @@ impl<G: Game> CFR<G> {
         self.strategy_sum.entry(info_state.clone()).or_insert(node.zero_utils());
     }
 
-    fn get_payoff(&self, node: &Node) -> f64 {
+    fn payoff(&self, node: &Node) -> f64 {
         let won = self.game.player_wins(&node);
         let win_amount = node.pot.payoff(node.player(), won);
 

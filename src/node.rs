@@ -20,20 +20,18 @@ pub struct Node {
     pub history: History,
     pub player: Player,
     pub cards: PlayerCards,
-    pub board: Board,
     pub deck: Deck,
 }
 
 impl Node {
     pub fn new<G: Game>(game: &G, deal: Deal) -> Node {
         Node {
-            actions: game.get_legal_first_actions(),
+            actions: game.legal_first_actions(),
             reach_prob: HashMap::from([(Player::IP, 1.0), (Player::OOP, 1.0)]),
             pot: game.initial_pot(),
             history: History::new(),
             player: Player::OOP,
             cards: deal.cards,
-            board: Board::new(),
             deck: deal.deck,
         }
     }
@@ -70,12 +68,16 @@ impl Node {
         vec![0.0; self.actions.len()]
     }
 
+    pub fn board(&self) -> Board {
+        self.history.street().board()
+    }
+
     pub fn next_action_node<G: Game>(&self, game: &G, action: Action, action_prob: f64) -> Node {
         let mut next_node: Node = self.clone();
         next_node.history.push_action(action.clone());
         next_node.player = self.player.opponent();
         next_node.reach_prob.insert(self.player(), self.player_reach_prob() * action_prob);
-        next_node.actions = game.get_legal_actions(&next_node.history);
+        next_node.actions = game.legal_actions(&next_node.history);
         next_node.pot.update(self.player(), action);
         next_node
     }
@@ -84,7 +86,7 @@ impl Node {
         let mut next_node: Node = self.clone();
         next_node.history.push_street(next_street);
         next_node.player = Player::OOP;
-        next_node.actions = game.get_legal_actions(&next_node.history);
+        next_node.actions = game.legal_actions(&next_node.history);
         next_node
     }
 
@@ -142,7 +144,7 @@ mod tests {
         let next_node = node.next_action_node(&Kuhn::new(), Action::Bet(Bet::P(50)), 0.5);
         assert_eq!(next_node.reach_prob[&Player::OOP], 0.5);
         assert_eq!(next_node.reach_prob[&Player::IP], 1.0);
-        assert_eq!(next_node.actions, Kuhn::new().get_legal_actions(&History::new_from_vec(vec![HistoryNode::Action(Action::Bet(Bet::P(50)))])));
+        assert_eq!(next_node.actions, Kuhn::new().legal_actions(&History::new_from_vec(vec![HistoryNode::Action(Action::Bet(Bet::P(50)))])));
         assert_eq!(next_node.pot.total(), node.pot.total() + 1.0);
         assert_eq!(next_node.pot.contributions(), HashMap::from([(Player::IP, 1.0), (Player::OOP, 2.0)]));
     }
@@ -171,7 +173,7 @@ mod tests {
         let next_node = node.next_street_node(&Kuhn::new(), Street::Flop(Board::new()));
         assert_eq!(next_node.history.street().is_flop(), true);
         assert_eq!(next_node.player, Player::OOP);
-        assert_eq!(next_node.actions, Leduc::new().get_legal_actions(
+        assert_eq!(next_node.actions, Leduc::new().legal_actions(
             &History::new_from_vec(vec![HistoryNode::Street(Street::Flop(Board::new()))])));
     }
 }

@@ -38,9 +38,9 @@ impl Game for Kuhn {
         ])
     }
 
-    fn get_legal_actions(&self, history: &History) -> Vec<Action> {
+    fn legal_actions(&self, history: &History) -> Vec<Action> {
         // At root there will be no history
-        let last = history.last().unwrap_or(&HistoryNode::Action(Action::Check)).get_action();
+        let last = history.last().unwrap_or(&HistoryNode::Action(Action::Check)).action();
         match last {
             Action::Check => vec![Action::Check, Action::Bet(Bet::P(50))],
             Action::Bet(Bet::P(50)) => vec![Action::Call, Action::Fold],
@@ -48,8 +48,8 @@ impl Game for Kuhn {
         }
     }
 
-    fn get_legal_first_actions(&self) -> Vec<Action> {
-        self.get_legal_actions(&History::new())
+    fn legal_first_actions(&self) -> Vec<Action> {
+        self.legal_actions(&History::new())
     }
 }
 
@@ -67,7 +67,7 @@ mod tests {
     #[test]
     fn test_legal_actions_at_root() {
         let kuhn = Kuhn::new();
-        let actions = kuhn.get_legal_actions(&History::new());
+        let actions = kuhn.legal_actions(&History::new());
         assert_eq!(actions, vec![Action::Check, Action::Bet(Bet::P(50))]);
     }
 
@@ -75,7 +75,7 @@ mod tests {
     fn test_legal_actions_after_check() {
         let kuhn = Kuhn::new();
         let history = History::new_from_vec(vec![HistoryNode::Action(Action::Check)]);
-        let actions = kuhn.get_legal_actions(&history);
+        let actions = kuhn.legal_actions(&history);
         assert_eq!(actions, vec![Action::Check, Action::Bet(Bet::P(50))]);
     }
 
@@ -83,7 +83,7 @@ mod tests {
     fn test_legal_actions_after_bet() {
         let kuhn = Kuhn::new();
         let history = History::new_from_vec(vec![HistoryNode::Action(Action::Bet(Bet::P(50)))]);
-        let actions = kuhn.get_legal_actions(&history);
+        let actions = kuhn.legal_actions(&history);
         assert_eq!(actions, vec![Action::Call, Action::Fold]);
     }
 

@@ -22,14 +22,14 @@ impl HistoryNode {
         }
     }
 
-    pub fn get_street(&self) -> Street {
+    pub fn street(&self) -> Street {
         match self {
             HistoryNode::Action(_) => Street::None,
             HistoryNode::Street(street) => street.clone(),
         }
     }
 
-    pub fn get_action(&self) -> Action {
+    pub fn action(&self) -> Action {
         match self {
             HistoryNode::Action(action) => action.clone(),
             HistoryNode::Street(_) => Action::None,

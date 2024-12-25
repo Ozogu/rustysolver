@@ -50,11 +50,11 @@ impl Statistics {
         }
     }
 
-    pub fn get_info_state_util(&self, info_state: &InfoState) -> f64 {
+    pub fn info_state_util(&self, info_state: &InfoState) -> f64 {
         self.nodes.get(info_state).unwrap().util
     }
 
-    pub fn get_node_util(&self, history: &History) -> f64 {
+    pub fn node_util(&self, history: &History) -> f64 {
         let mut node_util = 0.0;
         let mut updates = 0;
         for (info_state, node) in self.nodes.iter() {
@@ -67,15 +67,15 @@ impl Statistics {
         node_util / updates as f64
     }
 
-    pub fn get_action_utils(&self, info_state: &InfoState) -> Vec<f64> {
+    pub fn action_utils(&self, info_state: &InfoState) -> Vec<f64> {
         self.nodes.get(info_state).unwrap().action_utils.clone()
     }
 
-    pub fn get_info_state_br_util(&self, info_state: &InfoState) -> f64 {
+    pub fn info_state_br_util(&self, info_state: &InfoState) -> f64 {
         self.nodes.get(info_state).unwrap().br_util
     }
 
-    pub fn get_node_br_util(&self, history: &History) -> f64 {
+    pub fn node_br_util(&self, history: &History) -> f64 {
         let mut node_br_util = 0.0;
         let mut updates = 0;
         for (info_state, node) in self.nodes.iter() {
@@ -88,7 +88,7 @@ impl Statistics {
         node_br_util / updates as f64
     }
 
-    pub fn get_best_response(&self, info_state: &InfoState) -> Action {
+    pub fn best_response(&self, info_state: &InfoState) -> Action {
         self.nodes.get(info_state).unwrap().best_response.clone()
     }
 
@@ -96,7 +96,7 @@ impl Statistics {
         self.nodes.clone()
     }
 
-    pub fn get_node_exploitability(&self, history: &History) -> f64 {
+    pub fn node_exploitability(&self, history: &History) -> f64 {
         let mut node_util = 0.0;
         let mut node_br_util = 0.0;
         let mut updates = 0;
@@ -117,7 +117,7 @@ impl Statistics {
     fn find_best_reponse<G: Game>(game: &G, info_state: &InfoState, node: &StatisticsNode) -> (f64, Action) {
         let mut br_util = f64::NEG_INFINITY;
         let mut best_reponse = Action::None;        
-        let node_actions = game.get_legal_actions(&info_state.history);
+        let node_actions = game.legal_actions(&info_state.history);
         for (i, util) in node.action_utils.iter().enumerate() {
             if util > &br_util {
                 br_util = *util;

@@ -50,8 +50,8 @@ impl History {
             return false;
         }
 
-        let last = self.history.last().unwrap().get_action();
-        let second_last = self.history.get(self.history.len() - 2).unwrap().get_action();
+        let last = self.history.last().unwrap().action();
+        let second_last = self.history.get(self.history.len() - 2).unwrap().action();
 
         if last == Action::Fold || last == Action::Call {
             return true;
@@ -69,7 +69,7 @@ impl History {
     fn find_street(history: &Vec<HistoryNode>) -> Street {
         for node in history.iter().rev() {
             if node.is_street() {
-                return node.get_street();
+                return node.street();
             }
         }
         Street::Preflop

@@ -9,8 +9,8 @@ fn main() {
     cfr.print_strategy();
 
     let statistics = cfr.build_statistics();
-    let strategy_ev = statistics.get_node_util(&History::new());
-    let br_ev = statistics.get_node_br_util(&History::new());
-    let explitability = statistics.get_node_exploitability(&History::new());
+    let strategy_ev = statistics.node_util(&History::new());
+    let br_ev = statistics.node_br_util(&History::new());
+    let explitability = statistics.node_exploitability(&History::new());
     println!("Strategy EV: {:.4}, BR EV: {:.4} Exploitability: {:.2} %", strategy_ev, br_ev, explitability);
 }
