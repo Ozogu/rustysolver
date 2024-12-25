@@ -64,8 +64,8 @@ pub trait Game {
                 let card = deck_clone.draw().unwrap().rank;
                 let cards2 = HoleCards::new_with_rank(card);
                 
-                let deal1 = Deal::new(PlayerCards::new(cards1.clone(), cards2.clone()), deck.clone());
-                let deal2 = Deal::new(PlayerCards::new(cards2.clone(), cards1.clone()), deck.clone());
+                let deal1 = Deal::new(PlayerCards::new(cards1.clone(), cards2.clone()), deck_clone.clone());
+                let deal2 = Deal::new(PlayerCards::new(cards2.clone(), cards1.clone()), deck_clone.clone());
 
                 deals.push(deal1);
                 deals.push(deal2);

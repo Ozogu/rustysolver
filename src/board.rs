@@ -12,7 +12,11 @@ impl Board {
         }
     }
 
-    pub fn add_card(&mut self, card: Card) {
+    pub fn push(&mut self, card: Card) {
         self.cards.push(card);
+    }
+
+    pub fn to_string(&self) -> String {
+        self.cards.iter().map(|c| c.to_string()).collect::<Vec<String>>().join("")
     }
 }

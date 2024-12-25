@@ -65,8 +65,8 @@ impl<G: Game> CFR<G> {
     pub fn build_statistics(&self) -> Statistics {
         let mut statistics = Statistics::new();
 
-        for root in self.game.generate_deals() {
-            let node = Node::new(&self.game, root,);
+        for deal in self.game.generate_deals() {
+            let node = Node::new(&self.game, deal);
             self.iterate_statistics(node, &mut statistics);
         }
         
@@ -88,7 +88,7 @@ impl<G: Game> CFR<G> {
         let mut node_util = 0.0;
 
         for i in 0..node.actions.len() {
-            let next_node = node.next_node(&self.game, node.actions[i].clone(), strategy[i]);
+            let next_node = node.next_action_node(&self.game, node.actions[i].clone(), strategy[i]);
             action_utils[i] = -self.iterate_statistics(next_node, statistics);
             node_util += strategy[i] * action_utils[i];
         }
@@ -100,24 +100,36 @@ impl<G: Game> CFR<G> {
 
     fn cfr(&mut self, node: Node) -> f64 {
         if node.is_terminal(&self.game) { return self.get_payoff(&node); }
-        
-        self.create_node_entry(&node);
-        let strategy = self.get_strategy(&node);
-        let mut action_util = node.zero_utils();
-        let mut node_util = 0.0;
+        else if node.is_street_completing_action() {
+            let mut node_util = 0.0;
 
-        for i in 0..node.actions.len() {
-            let next_node = node.next_node(&self.game, node.actions[i].clone(), strategy[i]);
-            action_util[i] = -self.cfr(next_node);
-            node_util += strategy[i] * action_util[i];
-        }
+            for card in node.deck.iter() {
+                let next_street = node.history.street().next_street(card.clone());
+                let next_node = node.next_street_node(&self.game, next_street);
+                
+                node_util += self.cfr(next_node);
+            }
 
-        for i in 0..node.actions.len() {
-            let regret = action_util[i] - node_util;
-            self.regrets.get_mut(&node.info_state()).unwrap()[i] += node.opponent_reach_prob() * regret;
-        }
-
-        node_util
+            return node_util / node.deck.len() as f64;
+        } else {
+            self.create_node_entry(&node);
+            let strategy = self.get_strategy(&node);
+            let mut action_util = node.zero_utils();
+            let mut node_util = 0.0;
+    
+            for i in 0..node.actions.len() {
+                let next_node = node.next_action_node(&self.game, node.actions[i].clone(), strategy[i]);
+                action_util[i] = -self.cfr(next_node);
+                node_util += strategy[i] * action_util[i];
+            }
+    
+            for i in 0..node.actions.len() {
+                let regret = action_util[i] - node_util;
+                self.regrets.get_mut(&node.info_state()).unwrap()[i] += node.opponent_reach_prob() * regret;
+            }
+    
+            node_util
+        }        
     }
 
     fn get_strategy(&mut self, node: &Node) -> Vec<f64> {

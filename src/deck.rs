@@ -46,4 +46,12 @@ impl Deck {
     pub fn len(&self) -> usize {
         self.cards.len()
     }
+
+    pub fn iter(&self) -> std::slice::Iter<Card> {
+        self.cards.iter()
+    }
+
+    pub fn remove(&mut self, card: &Card) {
+        self.cards.retain(|c| c != card);
+    }
 }

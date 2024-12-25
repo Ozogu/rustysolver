@@ -95,8 +95,8 @@ mod tests {
             Deck::new_empty()
         );
         let node = Node::new(&kuhn, deal);
-        let next_node = node.next_node(&kuhn, Action::Check, 1.0);
-        let next_node = next_node.next_node(&kuhn, Action::Check, 1.0);
+        let next_node = node.next_action_node(&kuhn, Action::Check, 1.0);
+        let next_node = next_node.next_action_node(&kuhn, Action::Check, 1.0);
         assert_eq!((next_node.player(), kuhn.player_wins(&next_node)), (Player::OOP, Some(true)));
     }
 
@@ -108,9 +108,9 @@ mod tests {
             Deck::new_empty()
         );
         let node = Node::new(&kuhn, deal);
-        let next_node = node.next_node(&kuhn, Action::Check, 1.0);
-        let next_node = next_node.next_node(&kuhn, Action::Bet(Bet::P(50)), 1.0);
-        let next_node = next_node.next_node(&kuhn, Action::Fold, 1.0);
+        let next_node = node.next_action_node(&kuhn, Action::Check, 1.0);
+        let next_node = next_node.next_action_node(&kuhn, Action::Bet(Bet::P(50)), 1.0);
+        let next_node = next_node.next_action_node(&kuhn, Action::Fold, 1.0);
         assert_eq!((next_node.player(), kuhn.player_wins(&next_node)), (Player::IP, Some(true)));
     }
 
@@ -122,9 +122,9 @@ mod tests {
             Deck::new_empty()
         );
         let node = Node::new(&kuhn, deal);
-        let next_node = node.next_node(&kuhn, Action::Check, 1.0);
-        let next_node = next_node.next_node(&kuhn, Action::Bet(Bet::P(50)), 1.0);
-        let next_node = next_node.next_node(&kuhn, Action::Call, 1.0);
+        let next_node = node.next_action_node(&kuhn, Action::Check, 1.0);
+        let next_node = next_node.next_action_node(&kuhn, Action::Bet(Bet::P(50)), 1.0);
+        let next_node = next_node.next_action_node(&kuhn, Action::Call, 1.0);
         assert_eq!((next_node.player(), kuhn.player_wins(&next_node)), (Player::IP, Some(false)));
     }
 
@@ -136,8 +136,8 @@ mod tests {
             Deck::new_empty()
         );
         let node = Node::new(&kuhn, deal);
-        let next_node = node.next_node(&kuhn, Action::Bet(Bet::P(50)), 1.0);
-        let next_node = next_node.next_node(&kuhn, Action::Fold, 1.0);
+        let next_node = node.next_action_node(&kuhn, Action::Bet(Bet::P(50)), 1.0);
+        let next_node = next_node.next_action_node(&kuhn, Action::Fold, 1.0);
         assert_eq!((next_node.player(), kuhn.player_wins(&next_node)), (Player::OOP, Some(true)));
     }
 
@@ -149,8 +149,8 @@ mod tests {
             Deck::new_empty()
         );
         let node = Node::new(&kuhn, deal);
-        let next_node = node.next_node(&kuhn, Action::Bet(Bet::P(50)), 1.0);
-        let next_node = next_node.next_node(&kuhn, Action::Call, 1.0);
+        let next_node = node.next_action_node(&kuhn, Action::Bet(Bet::P(50)), 1.0);
+        let next_node = next_node.next_action_node(&kuhn, Action::Call, 1.0);
         assert_eq!((next_node.player(), kuhn.player_wins(&next_node)), (Player::OOP, Some(true)));
     }
 }

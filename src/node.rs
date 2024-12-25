@@ -10,6 +10,7 @@ use crate::history::History;
 use crate::board::Board;
 use crate::deck::Deck;
 use crate::deal::Deal;
+use crate::street::Street;
 
 #[derive(Clone, Debug)]
 pub struct Node {
@@ -40,6 +41,10 @@ impl Node {
     pub fn is_terminal<G: Game>(&self, game: &G) -> bool {
         self.history.street().to_u8() == game.num_streets() && self.history.is_terminal_action()
     }
+
+    pub fn is_street_completing_action(&self) -> bool {
+        self.history.is_terminal_action()
+    }
     
     pub fn player(&self) -> Player {
         self.player
@@ -65,13 +70,21 @@ impl Node {
         vec![0.0; self.actions.len()]
     }
 
-    pub fn next_node<G: Game>(&self, game: &G, action: Action, action_prob: f64) -> Node {
+    pub fn next_action_node<G: Game>(&self, game: &G, action: Action, action_prob: f64) -> Node {
         let mut next_node: Node = self.clone();
         next_node.history.push_action(action.clone());
         next_node.player = self.player.opponent();
         next_node.reach_prob.insert(self.player(), self.player_reach_prob() * action_prob);
         next_node.actions = game.get_legal_actions(&next_node.history);
         next_node.pot.update(self.player(), action);
+        next_node
+    }
+
+    pub fn next_street_node<G: Game>(&self, game: &G, next_street: Street) -> Node {
+        let mut next_node: Node = self.clone();
+        next_node.history.push_street(next_street);
+        next_node.player = Player::OOP;
+        next_node.actions = game.get_legal_actions(&next_node.history);
         next_node
     }
 
@@ -86,6 +99,7 @@ mod tests {
     use crate::kuhn::Kuhn;
     use crate::history_node::HistoryNode;
     use crate::bet::Bet;
+    use crate::leduc::Leduc;
 
     #[test]
     fn test_new() {
@@ -109,11 +123,11 @@ mod tests {
         assert_eq!(node.opponent_reach_prob(), 1.0);
 
         // in next node the previous player's (opponent) reach prob is multiplied by the action prob
-        let next_node = node.next_node(&Kuhn::new(), Action::Check, 0.5);
+        let next_node = node.next_action_node(&Kuhn::new(), Action::Check, 0.5);
         assert_eq!(next_node.player_reach_prob(), 1.0);
         assert_eq!(next_node.opponent_reach_prob(), 0.5);
         
-        let next_node = next_node.next_node(&Kuhn::new(), Action::Check, 0.25);
+        let next_node = next_node.next_action_node(&Kuhn::new(), Action::Check, 0.25);
         assert_eq!(next_node.opponent_reach_prob(), 0.25);
         assert_eq!(next_node.player_reach_prob(), 0.5);
     }
@@ -125,7 +139,7 @@ mod tests {
             Deck::new_empty()
         );
         let node = Node::new(&Kuhn::new(), deal);
-        let next_node = node.next_node(&Kuhn::new(), Action::Bet(Bet::P(50)), 0.5);
+        let next_node = node.next_action_node(&Kuhn::new(), Action::Bet(Bet::P(50)), 0.5);
         assert_eq!(next_node.reach_prob[&Player::OOP], 0.5);
         assert_eq!(next_node.reach_prob[&Player::IP], 1.0);
         assert_eq!(next_node.actions, Kuhn::new().get_legal_actions(&History::new_from_vec(vec![HistoryNode::Action(Action::Bet(Bet::P(50)))])));
@@ -142,8 +156,22 @@ mod tests {
         assert_eq!(node.player_cards(), oop_cards);
         assert_eq!(node.opponent_cards(), ip_cards);
 
-        let next_node = node.next_node(&Kuhn::new(), Action::Check, 1.0);
+        let next_node = node.next_action_node(&Kuhn::new(), Action::Check, 1.0);
         assert_eq!(next_node.player_cards(), ip_cards);
         assert_eq!(next_node.opponent_cards(), oop_cards);
+    }
+
+    #[test]
+    fn test_next_street_node() {
+        let deal = Deal::new(
+            PlayerCards::new(HoleCards::new_with_rank(1), HoleCards::new_with_rank(2)),
+            Deck::new_empty()
+        );
+        let node = Node::new(&Leduc::new(), deal);
+        let next_node = node.next_street_node(&Kuhn::new(), Street::Flop(Board::new()));
+        assert_eq!(next_node.history.street().is_flop(), true);
+        assert_eq!(next_node.player, Player::OOP);
+        assert_eq!(next_node.actions, Leduc::new().get_legal_actions(
+            &History::new_from_vec(vec![HistoryNode::Street(Street::Flop(Board::new()))])));
     }
 }

@@ -1,4 +1,5 @@
 use crate::board::Board;
+use crate::card::Card;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Ord, PartialOrd)]
 pub enum Street {
@@ -10,6 +11,17 @@ pub enum Street {
 }
 
 impl Street {
+    pub fn next_street(&self, card: Card) -> Street {
+        let mut board = self.get_board();
+        board.push(card);
+        match self {
+            Street::Preflop => Street::Flop(board),
+            Street::Flop(_) => Street::Turn(board),
+            Street::Turn(_) => Street::River(board),
+            _ => panic!("Cannot advance street"),
+        }
+    }
+
     pub fn to_u8(&self) -> u8 {
         match self {
             Street::None => 0,
@@ -23,10 +35,10 @@ impl Street {
     pub fn to_string(&self) -> String {
         match self {
             Street::Preflop => "P".to_string(),
-            Street::Flop(_) => "F".to_string(),
-            Street::Turn(_) => "T".to_string(),
-            Street::River(_) => "R".to_string(),
-            Street::None => "N".to_string(),
+            Street::Flop(board) => format!("F{}", board.to_string()),
+            Street::Turn(board) => format!("T{}", board.to_string()),
+            Street::River(board) => format!("R{}", board.to_string()),
+            Street::None => panic!("Cannot convert None street to string"),
         }
     }
 
@@ -48,6 +60,16 @@ impl Street {
         match self {
             Street::River(_) => true,
             _ => false,
+        }
+    }
+
+    pub fn get_board(&self) -> Board {
+        match self {
+            Street::Preflop => Board::new(),
+            Street::Flop(board) => board.clone(),
+            Street::Turn(board) => board.clone(),
+            Street::River(board) => board.clone(),
+            Street::None => panic!("Cannot get board for None street"),
         }
     }
 }
