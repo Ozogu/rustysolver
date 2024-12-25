@@ -1,7 +1,6 @@
 use std::collections::HashMap;
 use crate::info_state::InfoState;
 use crate::game::Game;
-use crate::node::Node;
 
 pub struct GameTree<G: Game> {
     regrets: HashMap<InfoState, Vec<f64>>,

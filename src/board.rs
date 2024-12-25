@@ -2,17 +2,17 @@ use crate::card::Card;
 
 #[derive(Debug, Clone, Hash, PartialEq, Eq)]
 pub struct Board {
-    pub cardss: Vec<Card>,
+    pub cards: Vec<Card>,
 }
 
 impl Board {
     pub fn new() -> Self {
         Board {
-            cardss: vec![],
+            cards: vec![],
         }
     }
 
     pub fn add_card(&mut self, card: Card) {
-        self.cardss.push(card);
+        self.cards.push(card);
     }
 }

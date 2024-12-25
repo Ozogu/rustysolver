@@ -5,9 +5,6 @@ use crate::suit::Suit;
 use crate::card::Card;
 use crate::pot::Pot;
 use crate::action::Action;
-use crate::node::Node;
-use crate::player_cards::PlayerCards;
-use crate::deal::Deal;
 
 #[derive(Clone, Debug)]
 pub struct Leduc {}
@@ -48,11 +45,7 @@ impl Game for Leduc {
         vec![]
     }
 
-    fn player_wins(&self, node: &Node) -> Option<bool> {
-        None
-    }
-
-    fn generate_deals(&self) -> Vec<Deal> {
-        vec![]
+    fn get_legal_first_actions() -> Vec<Action> {
+        vec![Action::Check, Action::Bet(50)]
     }
 }

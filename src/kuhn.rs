@@ -1,14 +1,11 @@
 use crate::action::Action;
 use crate::history::History;
-use crate::node::Node;
 use crate::deck::Deck;
 use crate::card::Card;
 use crate::suit::Suit;
 use crate::pot::Pot;
 use crate::game::Game;
-use crate::player_cards::PlayerCards;
-use crate::hole_cards::HoleCards;
-use crate::deal::Deal;
+use crate::history_node::HistoryNode;
 
 #[derive(Clone, Debug)]
 pub struct Kuhn {}
@@ -40,32 +37,9 @@ impl Game for Kuhn {
         ])
     }
 
-    fn generate_deals(&self) -> Vec<Deal> {
-        let mut deals = Vec::new();
-        let mut deck = self.deck();
-        
-        for _ in 0..deck.len() {
-            let card = deck.draw().unwrap().rank;
-            let cards1 = HoleCards::new_with_rank(card);
-            let mut deck_clone = deck.clone();
-            for _ in 0..deck_clone.len() {
-                let card = deck_clone.draw().unwrap().rank;
-                let cards2 = HoleCards::new_with_rank(card);
-                
-                let deal1 = Deal::new(PlayerCards::new(cards1.clone(), cards2.clone()), deck.clone());
-                let deal2 = Deal::new(PlayerCards::new(cards2.clone(), cards1.clone()), deck.clone());
-
-                deals.push(deal1);
-                deals.push(deal2);
-            }
-        }
-
-        deals
-    }
-
     fn get_legal_actions(&self, history: &History) -> Vec<Action> {
         // At root there will be no history
-        let last = history.last().unwrap_or(&Action::Check);
+        let last = history.last().unwrap_or(&HistoryNode::Action(Action::Check)).get_action();
         match last {
             Action::Check => vec![Action::Check, Action::Bet(50)],
             Action::Bet(50) => vec![Action::Call, Action::Fold],
@@ -73,20 +47,8 @@ impl Game for Kuhn {
         }
     }
 
-    fn player_wins(&self, node: &Node) -> Option<bool> {
-        let last = node.history.last().unwrap();
-        match last {
-            Action::Fold => Some(true),
-            Action::Check | Action::Call => {
-                let result = node.player_cards().partial_cmp(&node.opponent_cards());
-                match result {
-                    Some(std::cmp::Ordering::Greater) => Some(true),
-                    Some(std::cmp::Ordering::Less) => Some(false),
-                    _ => None,
-                }
-            }
-            _ => panic!("Invalid action: {:?}", last),
-        }
+    fn get_legal_first_actions() -> Vec<Action> {
+        vec![Action::Check, Action::Bet(50)]
     }
 }
 
@@ -96,6 +58,10 @@ mod tests {
     use crate::player::Player;
     use crate::player_cards::PlayerCards;
     use crate::hole_cards::HoleCards;
+    use crate::history_node::HistoryNode;
+    use crate::action::Action;
+    use crate::deal::Deal;
+    use crate::node::Node;
 
     #[test]
     fn test_legal_actions_at_root() {
@@ -107,7 +73,7 @@ mod tests {
     #[test]
     fn test_legal_actions_after_check() {
         let kuhn = Kuhn::new();
-        let history = History::new_from_vec(vec![Action::Check]);
+        let history = History::new_from_vec(vec![HistoryNode::Action(Action::Check)]);
         let actions = kuhn.get_legal_actions(&history);
         assert_eq!(actions, vec![Action::Check, Action::Bet(50)]);
     }
@@ -115,7 +81,7 @@ mod tests {
     #[test]
     fn test_legal_actions_after_bet() {
         let kuhn = Kuhn::new();
-        let history = History::new_from_vec(vec![Action::Bet(50)]);
+        let history = History::new_from_vec(vec![HistoryNode::Action(Action::Bet(50))]);
         let actions = kuhn.get_legal_actions(&history);
         assert_eq!(actions, vec![Action::Call, Action::Fold]);
     }

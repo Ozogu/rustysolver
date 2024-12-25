@@ -18,3 +18,4 @@ pub mod player_cards;
 pub mod statistics;
 pub mod game_tree;
 pub mod deal;
+pub mod history_node;

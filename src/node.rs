@@ -28,7 +28,7 @@ pub struct Node {
 impl Node {
     pub fn new<G: Game>(game: &G, deal: Deal) -> Node {
         Node {
-            actions: game.get_legal_actions(&History::new()),
+            actions: G::get_legal_first_actions(),
             reach_prob: HashMap::from([(Player::IP, 1.0), (Player::OOP, 1.0)]),
             pot: game.initial_pot(),
             history: History::new(),
@@ -70,7 +70,7 @@ impl Node {
 
     pub fn next_node<G: Game>(&self, game: &G, action: Action, action_prob: f64) -> Node {
         let mut next_node: Node = self.clone();
-        next_node.history.push(action);
+        next_node.history.push_action(action.clone());
         next_node.player = self.player.opponent();
         next_node.reach_prob.insert(self.player(), self.player_reach_prob() * action_prob);
         next_node.actions = game.get_legal_actions(&next_node.history);
@@ -87,6 +87,7 @@ impl Node {
 mod tests {
     use super::*;
     use crate::kuhn::Kuhn;
+    use crate::history_node::HistoryNode;
 
     #[test]
     fn test_new() {
@@ -129,7 +130,7 @@ mod tests {
         let next_node = node.next_node(&Kuhn::new(), Action::Bet(50), 0.5);
         assert_eq!(next_node.reach_prob[&Player::OOP], 0.5);
         assert_eq!(next_node.reach_prob[&Player::IP], 1.0);
-        assert_eq!(next_node.actions, Kuhn::new().get_legal_actions(&History::new_from_vec(vec![Action::Bet(50)])));
+        assert_eq!(next_node.actions, Kuhn::new().get_legal_actions(&History::new_from_vec(vec![HistoryNode::Action(Action::Bet(50))])));
         assert_eq!(next_node.pot.total(), node.pot.total() + 1.0);
         assert_eq!(next_node.pot.contributions(), HashMap::from([(Player::IP, 1.0), (Player::OOP, 2.0)]));
     }
