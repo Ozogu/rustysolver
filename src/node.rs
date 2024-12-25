@@ -28,7 +28,7 @@ pub struct Node {
 impl Node {
     pub fn new<G: Game>(game: &G, deal: Deal) -> Node {
         Node {
-            actions: G::get_legal_first_actions(),
+            actions: game.get_legal_first_actions(),
             reach_prob: HashMap::from([(Player::IP, 1.0), (Player::OOP, 1.0)]),
             pot: game.initial_pot(),
             history: History::new(),

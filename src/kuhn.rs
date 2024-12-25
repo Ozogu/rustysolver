@@ -48,8 +48,8 @@ impl Game for Kuhn {
         }
     }
 
-    fn get_legal_first_actions() -> Vec<Action> {
-        vec![Action::Check, Action::Bet(Bet::P(50))]
+    fn get_legal_first_actions(&self) -> Vec<Action> {
+        self.get_legal_actions(&History::new())
     }
 }
 

@@ -46,14 +46,15 @@ impl Game for Leduc {
     fn get_legal_actions(&self, history: &History) -> Vec<Action> {
         let last = history.last().unwrap_or(&HistoryNode::Action(Action::Check)).get_action();
         match last {
-            Action::Check => vec![Action::Check, Action::Bet(Bet::P(50))],
-            Action::Bet(Bet::P(50)) => vec![Action::Call, Action::Fold],
+            Action::Check => vec![Action::Check, Action::Bet(Bet::C(2)), Action::Bet(Bet::C(4))],
+            Action::Bet(_) => vec![Action::Fold, Action::Call, Action::Raise(Bet::C(2)), Action::Raise(Bet::C(4))],
+            Action::Raise(_) => vec![Action::Fold, Action::Call],
             _ => vec![],
         }
 
     }
 
-    fn get_legal_first_actions() -> Vec<Action> {
-        vec![Action::Check, Action::Bet(Bet::P(50))]
+    fn get_legal_first_actions(&self) -> Vec<Action> {
+        self.get_legal_actions(&History::new())
     }
 }

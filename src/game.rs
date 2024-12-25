@@ -12,7 +12,7 @@ pub trait Game {
     fn initial_pot(&self) -> Pot;
     fn deck(&self) -> Deck;
     fn get_legal_actions(&self, history: &History) -> Vec<Action>;
-    fn get_legal_first_actions() -> Vec<Action>;
+    fn get_legal_first_actions(&self) -> Vec<Action>;
 
     fn num_streets(&self) -> u8;
     fn num_hole_cards(&self) -> u8;
