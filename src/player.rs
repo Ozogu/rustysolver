@@ -1,6 +1,6 @@
 use std::fmt;
 
-#[derive(Debug, Clone, Copy, PartialEq, Hash, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Hash, Eq, Ord, PartialOrd)]
 pub enum Player {
     IP,
     OOP,

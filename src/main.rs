@@ -1,10 +1,10 @@
 use rustysolver::cfr::CFR;
-use rustysolver::kuhn::Kuhn;
+use rustysolver::leduc::Leduc;
 use rustysolver::history::History;
 
 fn main() {
-    let mut cfr = CFR::new(Kuhn::new());
-    let ev = cfr.train(100000);
+    let mut cfr = CFR::new(Leduc::new());
+    let ev = cfr.train(1000);
     println!("Expected value: {:.4}", ev);
     cfr.print_strategy();
 

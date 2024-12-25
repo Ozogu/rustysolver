@@ -1,6 +1,6 @@
 use std::fmt;
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Ord, PartialOrd)]
 pub enum Bet {
     C(u32),
     P(u32),

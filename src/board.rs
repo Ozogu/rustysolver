@@ -1,6 +1,6 @@
 use crate::card::Card;
 
-#[derive(Debug, Clone, Hash, PartialEq, Eq)]
+#[derive(Debug, Clone, Hash, PartialEq, Eq, Ord, PartialOrd)]
 pub struct Board {
     pub cards: Vec<Card>,
 }

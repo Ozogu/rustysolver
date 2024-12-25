@@ -1,6 +1,6 @@
 use std::fmt;
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Hash, Ord)]
 pub enum Suit {
     Spades,
     Hearts,

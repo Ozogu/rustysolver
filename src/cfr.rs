@@ -34,9 +34,31 @@ impl<G: Game> CFR<G> {
     }
 
     pub fn print_strategy(&mut self) {
+        let mut strategy = Vec::new();
         for (info_state, _) in &self.regrets {
+            let actions = self.game.get_legal_actions(&info_state.history);
             let avg_strategy = self.get_average_strategy(info_state).unwrap();
-            println!("{:}: {:.2?}", info_state, avg_strategy);
+
+            let mut zip = String::new();
+            zip.push_str("[");
+            for (action, prob) in actions.iter().zip(avg_strategy.iter()) {
+                zip.push_str(&format!("{:}:{:.2?}, ", action, prob));
+            }
+            zip.pop();
+            zip.pop();
+            zip.push_str("]");
+            
+            strategy.push((info_state.clone(), format!("{:}: {:}", info_state, zip)));
+        }
+
+        strategy.sort_by_key(|(info_state, _)| (
+            info_state.player,
+            info_state.hole_cards.clone(),
+            info_state.history.to_string().len(),
+            info_state.history.clone(),
+        ));
+        for (_, line) in strategy {
+            println!("{:}", line);
         }
     }
 

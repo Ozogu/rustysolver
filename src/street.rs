@@ -1,6 +1,6 @@
 use crate::board::Board;
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Ord, PartialOrd)]
 pub enum Street {
     Preflop,
     Flop(Board),

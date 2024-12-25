@@ -55,6 +55,12 @@ impl fmt::Display for HoleCards {
     }
 }
 
+impl Ord for HoleCards {
+    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+        self.partial_cmp(other).unwrap()
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

@@ -1,7 +1,7 @@
 use crate::action::Action;
 use crate::street::Street;
 
-#[derive(Clone, Debug, PartialEq, Eq, Hash)]
+#[derive(Clone, Debug, PartialEq, Eq, Hash, Ord, PartialOrd)]
 pub enum HistoryNode {
     Action(Action),
     Street(Street),

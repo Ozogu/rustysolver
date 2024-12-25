@@ -1,7 +1,7 @@
 use crate::suit::Suit;
 use std::fmt;
 
-#[derive(Clone, Debug, PartialEq, PartialOrd, Eq, Hash)]
+#[derive(Clone, Debug, PartialEq, PartialOrd, Eq, Hash, Ord)]
 pub struct Card {
     pub suit: Suit,
     pub rank: u8,

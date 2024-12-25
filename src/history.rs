@@ -3,7 +3,7 @@ use crate::street::Street;
 use crate::history_node::HistoryNode;
 use std::fmt;
 
-#[derive(Clone, Debug, PartialEq, Eq, Hash)]
+#[derive(Clone, Debug, PartialEq, Eq, Hash, Ord, PartialOrd)]
 pub struct History {
     history: Vec<HistoryNode>,
     street: Street,

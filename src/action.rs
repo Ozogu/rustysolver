@@ -1,6 +1,6 @@
 use crate::bet::Bet;
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Ord, PartialOrd)]
 pub enum Action {
     Fold,
     Check,
@@ -20,5 +20,11 @@ impl Action {
             Action::Check => "x".to_string(),
             Action::None => "-".to_string(),
         }
+    }
+}
+
+impl std::fmt::Display for Action {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        write!(f, "{}", self.to_string())
     }
 }
