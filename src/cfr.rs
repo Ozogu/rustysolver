@@ -76,7 +76,7 @@ impl<G: Game> CFR<G> {
     }
 
     fn iterate_statistics(&self, node: Node, statistics: &mut Statistics) -> f64 {
-        if node.is_terminal() {
+        if node.is_terminal(&self.game) {
             let payoff = self.get_payoff(&node);
             statistics.update_node(&node, payoff, node.zero_utils());
 
@@ -99,7 +99,7 @@ impl<G: Game> CFR<G> {
     }
 
     fn cfr(&mut self, node: Node) -> f64 {
-        if node.is_terminal() { return self.get_payoff(&node); }
+        if node.is_terminal(&self.game) { return self.get_payoff(&node); }
         
         self.create_node_entry(&node);
         let strategy = self.get_strategy(&node);

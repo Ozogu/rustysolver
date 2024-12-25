@@ -8,7 +8,6 @@ use crate::player_cards::PlayerCards;
 use crate::pot::Pot;
 use crate::history::History;
 use crate::board::Board;
-use crate::street::Street;
 use crate::deck::Deck;
 use crate::deal::Deal;
 
@@ -21,7 +20,6 @@ pub struct Node {
     pub player: Player,
     pub cards: PlayerCards,
     pub board: Board,
-    pub street: Street,
     pub deck: Deck,
 }
 
@@ -35,13 +33,12 @@ impl Node {
             player: Player::OOP,
             cards: deal.cards,
             board: Board::new(),
-            street: Street::Preflop,
             deck: deal.deck,
         }
     }
 
-    pub fn is_terminal(&self) -> bool {
-        self.history.is_terminal()
+    pub fn is_terminal<G: Game>(&self, game: &G) -> bool {
+        self.history.street().to_u8() == game.num_streets() && self.history.is_terminal_action()
     }
     
     pub fn player(&self) -> Player {

@@ -12,11 +12,11 @@ pub enum Street {
 impl Street {
     pub fn to_u8(&self) -> u8 {
         match self {
-            Street::Preflop => 0,
-            Street::Flop(_) => 1,
-            Street::Turn(_) => 2,
-            Street::River(_) => 3,
-            Street::None => 255,
+            Street::None => 0,
+            Street::Preflop => 1,
+            Street::Flop(_) => 2,
+            Street::Turn(_) => 3,
+            Street::River(_) => 4,
         }
     }
 

@@ -45,7 +45,7 @@ impl History {
         self.history.clone()
     }
 
-    pub fn is_terminal(&self) -> bool {
+    pub fn is_terminal_action(&self) -> bool {
         if self.history.len() < 2 {
             return false;
         }
@@ -106,14 +106,14 @@ mod tests {
     #[test]
     fn test_is_empty_terminal() {
         let history = History::new();
-        assert_eq!(history.is_terminal(), false);
+        assert_eq!(history.is_terminal_action(), false);
     }
 
     #[test]
     fn test_is_single_action_terminal() {
         let mut history = History::new();
         history.push_action(Action::Check);
-        assert_eq!(history.is_terminal(), false);
+        assert_eq!(history.is_terminal_action(), false);
     }
 
     #[test]
@@ -121,7 +121,7 @@ mod tests {
         let mut history = History::new();
         history.push_action(Action::Check);
         history.push_action(Action::Check);
-        assert_eq!(history.is_terminal(), true);
+        assert_eq!(history.is_terminal_action(), true);
     }
 
     #[test]
@@ -129,7 +129,7 @@ mod tests {
         let mut history = History::new();
         history.push_action(Action::Fold);
         history.push_action(Action::Fold);
-        assert_eq!(history.is_terminal(), true);
+        assert_eq!(history.is_terminal_action(), true);
     }
 
     #[test]
@@ -137,7 +137,7 @@ mod tests {
         let mut history = History::new();
         history.push_action(Action::Fold);
         history.push_action(Action::Call);
-        assert_eq!(history.is_terminal(), true);
+        assert_eq!(history.is_terminal_action(), true);
     }
 
     #[test]
@@ -145,7 +145,7 @@ mod tests {
         let mut history = History::new();
         history.push_action(Action::Fold);
         history.push_action(Action::Bet(Bet::P(50)));
-        assert_eq!(history.is_terminal(), false);
+        assert_eq!(history.is_terminal_action(), false);
     }
 
     #[test]
@@ -153,7 +153,7 @@ mod tests {
         let mut history = History::new();
         history.push_action(Action::Fold);
         history.push_action(Action::Check);
-        assert_eq!(history.is_terminal(), false);
+        assert_eq!(history.is_terminal_action(), false);
     }
 
     #[test]
@@ -161,7 +161,7 @@ mod tests {
         let mut history = History::new();
         history.push_action(Action::Fold);
         history.push_action(Action::Raise(Bet::P(50)));
-        assert_eq!(history.is_terminal(), false);
+        assert_eq!(history.is_terminal_action(), false);
     }
 
     #[test]
