@@ -20,3 +20,5 @@ pub mod game_tree;
 pub mod deal;
 pub mod history_node;
 pub mod bet;
+pub mod hand_rank;
+pub mod card_array;

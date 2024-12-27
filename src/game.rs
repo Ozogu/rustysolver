@@ -1,4 +1,6 @@
 use crate::deck::Deck;
+use crate::hand_rank::HandRank;
+use crate::hand_rank::player_wins;
 use crate::history::History;
 use crate::hole_cards::HoleCards;
 use crate::action::Action;
@@ -41,12 +43,8 @@ pub trait Game {
         match last {
             Action::Fold => Some(true),
             Action::Check | Action::Call => {
-                let result = node.player_cards().partial_cmp(&node.opponent_cards());
-                match result {
-                    Some(std::cmp::Ordering::Greater) => Some(true),
-                    Some(std::cmp::Ordering::Less) => Some(false),
-                    _ => None,
-                }
+                player_wins(
+                    node.player_cards(), node.opponent_cards(), node.board())
             }
             _ => panic!("Invalid action: {:?}", last),
         }

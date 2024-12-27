@@ -22,13 +22,26 @@ impl Suit {
         }
     }
 
-    pub fn from_string(s: &str) -> Self {
+    pub fn from_str(s: &str) -> Self {
         match s {
             "♠" => Suit::Spades,
             "♥" => Suit::Hearts,
             "♦" => Suit::Diamonds,
             "♣" => Suit::Clubs,
+            "s" => Suit::Spades,
+            "h" => Suit::Hearts,
+            "d" => Suit::Diamonds,
+            "c" => Suit::Clubs,
             _ => panic!("Invalid suit: {}", s),
+        }
+    }
+
+    pub fn to_usize(&self) -> usize {
+        match self {
+            Suit::Spades => 0,
+            Suit::Hearts => 1,
+            Suit::Diamonds => 2,
+            Suit::Clubs => 3,
         }
     }
 }
