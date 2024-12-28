@@ -1,4 +1,4 @@
-use crate::card::Card;
+use crate::card::{self, Card};
 use crate::hand_rank::HandRank;
 use std::fmt;
 
@@ -75,10 +75,14 @@ impl CardArray {
                 sum += 1;
                 if sum == 5 {
                     let mut relevant_cards = CardArray::new();
-                    for card in i-4..i {
-                        relevant_cards.add_card(&self.cards[card]);
+                    for straight_card in i-4..i+1 {
+                        for card in self.cards.iter() {
+                            if card.rank == (straight_card+1) as u8 {
+                                relevant_cards.add_card(&card);
+                                break;
+                            }
+                        }
                     }
-
                     return HandRank::Straight(relevant_cards);
                 }
             } else {
@@ -282,6 +286,29 @@ mod tests {
         card_array.add_card(&Card::new(5, Suit::Hearts));
         card_array.add_card(&Card::new(14, Suit::Spades));
         assert_eq!(card_array.get_straight().is_straight(), true);
+    }
+
+    #[test]
+    fn test_straight_card_array() {
+        let mut card_array = CardArray::new();
+        card_array.add_card(&Card::new(3, Suit::Hearts));
+        card_array.add_card(&Card::new(2, Suit::Hearts));
+        card_array.add_card(&Card::new(3, Suit::Hearts));
+        card_array.add_card(&Card::new(4, Suit::Hearts));
+        card_array.add_card(&Card::new(5, Suit::Hearts));
+        card_array.add_card(&Card::new(5, Suit::Hearts));
+        card_array.add_card(&Card::new(6, Suit::Spades));
+        
+        let straight = card_array.get_straight();
+        let expected = vec![
+            Card::new(2, Suit::Hearts),
+            Card::new(3, Suit::Hearts),
+            Card::new(4, Suit::Hearts),
+            Card::new(5, Suit::Hearts),
+            Card::new(6, Suit::Spades),
+        ];
+
+        assert_eq!(straight.get_card_array().cards, expected);
     }
 
     #[test]
