@@ -86,21 +86,23 @@ fn compare_straight_flush(self_card_array: &CardArray, other_card_array: &CardAr
 }
 
 fn calculate_hand_rank(hole_cards: &HoleCards, board: &Board) -> HandRank {
-    let card_array = to_card_array(hole_cards, board);
+    // let card_array = to_card_array(hole_cards, board);
 
-    let is_flush = card_array.is_flush();
-    let is_straight = card_array.is_straight();
+    // let is_flush = card_array.is_flush();
+    // let is_straight = card_array.is_straight();
 
-    if is_flush && is_straight { return HandRank::StraightFlush(card_array); }
-    let pair_type = card_array.get_pair_type();
-    if pair_type == HandRank::FourOfAKind(card_array.clone()) { return pair_type; }
-    else if pair_type == HandRank::FullHouse(card_array.clone()) { return pair_type; } 
-    else if is_flush { return HandRank::Flush(card_array); }
-    else if is_straight { return HandRank::Straight(card_array); }
-    else if pair_type == HandRank::ThreeOfAKind(card_array.clone()) { return pair_type; }
-    else if pair_type == HandRank::TwoPair(card_array.clone()) { return pair_type; }
-    else if pair_type == HandRank::OnePair(card_array.clone()) { return pair_type; }
-    else { return HandRank::HighCard(card_array.clone()); }
+    // if is_flush && is_straight { return HandRank::StraightFlush(card_array); }
+    // let pair_type = card_array.get_pair_type();
+    // if pair_type == HandRank::FourOfAKind(card_array.clone()) { return pair_type; }
+    // else if pair_type == HandRank::FullHouse(card_array.clone()) { return pair_type; } 
+    // else if is_flush { return HandRank::Flush(card_array); }
+    // else if is_straight { return HandRank::Straight(card_array); }
+    // else if pair_type == HandRank::ThreeOfAKind(card_array.clone()) { return pair_type; }
+    // else if pair_type == HandRank::TwoPair(card_array.clone()) { return pair_type; }
+    // else if pair_type == HandRank::OnePair(card_array.clone()) { return pair_type; }
+    // else { return HandRank::HighCard(card_array.clone()); }
+
+    HandRank::None
 }
 
 fn to_card_array(hole_cards: &HoleCards, board: &Board) -> CardArray {

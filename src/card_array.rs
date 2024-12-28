@@ -1,5 +1,6 @@
 use crate::card::Card;
 use crate::hand_rank::HandRank;
+use crate::suit::Suit;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct CardArray {
@@ -35,47 +36,75 @@ impl CardArray {
         self.cards.push(card.clone());
     }
 
-    pub fn is_straight_flush(&self) -> bool {
-        self.is_flush() && self.is_straight()
-    }
-
-    pub fn is_flush(&self) -> bool {
-        for suit in self.suits.iter() {
-            if *suit >= 5 {
-                return true;
+    pub fn get_straight_flush(&self) -> HandRank {
+        let flush = self.get_flush();
+        if flush != HandRank::None {
+            let flush_card_array = flush.get_card_array();
+            if flush_card_array.get_straight() != HandRank::None {
+                return HandRank::StraightFlush(flush_card_array.clone());
             }
         }
 
-        false
+        HandRank::None
     }
 
-    pub fn is_straight(&self) -> bool {
+    pub fn get_flush(&self) -> HandRank {
+        
+        for suit in self.suits.iter() {
+            if *suit >= 5 {
+                let mut relevant_cards = CardArray::new();
+
+                for card in self.cards.iter() {
+                    if card.suit == Suit::from_u8(*suit) {
+                        relevant_cards.add_card(card);
+                    }
+                }
+
+                relevant_cards.cards.sort_by(|a, b| b.rank.cmp(&a.rank));
+                return HandRank::Flush(relevant_cards);
+            }
+        }
+
+        HandRank::None
+    }
+
+    pub fn get_straight(&self) -> HandRank {
         let mut bits = 0;
-        for card in self.ranks.iter() {
-            if card > &0 {
-                bits = (bits << 1) | card;
+        for rank in self.ranks.iter() {
+            if rank > &0 {
+                bits = (bits << 1) | rank;
                 let straight = 0b11111;
                 if bits & straight == straight {
-                    return true;
+                    let mut relevant_cards = CardArray::new();
+                    for card in self.ranks[(rank-1) as usize]..self.ranks[(rank-6) as usize] {
+                        relevant_cards.add_card(&Card::new(card as u8, Suit::Hearts));
+                    }
+
+                    return HandRank::Straight(relevant_cards);
                 }
             }
         }
-        false
+        
+        HandRank::None
     }
 
     pub fn get_pair_type(&self) -> HandRank {
         let mut pair_type = HandRank::None;
-        for card in self.ranks {
-            if  card > 1 {
+        let mut relevant_cards = CardArray::new();
+        for rank in self.ranks {
+            if  rank > 1 {
                 if pair_type == HandRank::None {
-                    pair_type = self.pair_type_from_card_count(card);
+                    pair_type = self.pair_type_from_card_count(rank);
+                    self.add_relevant_pair_cards(&mut relevant_cards, rank);
                 } else {
                     match pair_type {
                         HandRank::OnePair(_) => {
-                            pair_type = self.many_pair_type_from_pair(card);
+                            pair_type = self.many_pair_type_from_pair(rank);
+                            self.add_relevant_pair_cards(&mut relevant_cards, rank);
                         },
                         HandRank::ThreeOfAKind(_) => {
-                            pair_type = self.many_pair_type_from_trips(card);
+                            pair_type = self.many_pair_type_from_trips(rank);
+                            self.add_relevant_pair_cards(&mut relevant_cards, rank);
                         },
                         _ => panic!("Invalid pair type"),
                     }
@@ -84,8 +113,20 @@ impl CardArray {
                 }
             }
         }
+        
+        if pair_type != HandRank::None {
+            self.fill_relevant_cards(&mut relevant_cards);
+            return pair_type;
+        }
     
         pair_type
+    }
+
+    pub fn get_high_card(&self) -> HandRank {
+        let mut relevant_cards = CardArray::new();
+        self.fill_relevant_cards(&mut relevant_cards);
+
+        HandRank::HighCard(relevant_cards)
     }
     
     fn pair_type_from_card_count(&self, card_count: u8) -> HandRank {
@@ -110,6 +151,34 @@ impl CardArray {
             2 => HandRank::FullHouse(self.clone()),
             _ => panic!("Invalid pair type"),
         }
+    }
+
+    fn add_relevant_pair_cards(&self, relevant_cards: &mut CardArray, rank: u8) {
+        for card in self.cards.iter() {
+            if card.rank == rank {
+                relevant_cards.add_card(&card);
+            }
+        }
+    }
+
+    fn inner_join(&self, other: &CardArray) -> CardArray {
+        let mut joined = CardArray::new();
+        for card in self.cards.iter() {
+            if other.cards.contains(card) {
+                joined.add_card(card);
+            }
+        }
+
+        joined
+    }
+
+    fn fill_relevant_cards(&self, relevant_cards: &mut CardArray) {
+        let mut inner_joined = self.inner_join(&relevant_cards);
+        inner_joined.cards.sort_by(|a, b| b.rank.cmp(&a.rank));
+
+        let fill_num = 5 - relevant_cards.cards.len();
+        inner_joined.cards.iter().take(fill_num)
+            .for_each(|card| relevant_cards.add_card(card));
     }
 
 }
@@ -151,7 +220,7 @@ mod tests {
         card_array.add_card(&Card::new(4, Suit::Hearts));
         card_array.add_card(&Card::new(5, Suit::Hearts));
         card_array.add_card(&Card::new(6, Suit::Hearts));
-        assert_eq!(card_array.is_flush(), true);
+        assert_eq!(card_array.get_flush(), HandRank::Flush(card_array.clone()));
     }
 
     #[test]
@@ -162,7 +231,7 @@ mod tests {
         card_array.add_card(&Card::new(4, Suit::Hearts));
         card_array.add_card(&Card::new(5, Suit::Hearts));
         card_array.add_card(&Card::new(6, Suit::Spades));
-        assert_eq!(card_array.is_flush(), false);
+        assert_eq!(card_array.get_flush(), HandRank::None);
     }
 
     #[test]
@@ -173,7 +242,7 @@ mod tests {
         card_array.add_card(&Card::new(4, Suit::Hearts));
         card_array.add_card(&Card::new(5, Suit::Hearts));
         card_array.add_card(&Card::new(14, Suit::Spades));
-        assert_eq!(card_array.is_straight(), true);
+        assert_eq!(card_array.get_straight(), HandRank::Straight(card_array.clone()));
     }
 
     #[test]
@@ -184,7 +253,7 @@ mod tests {
         card_array.add_card(&Card::new(4, Suit::Hearts));
         card_array.add_card(&Card::new(5, Suit::Hearts));
         card_array.add_card(&Card::new(7, Suit::Spades));
-        assert_eq!(card_array.is_straight(), false);
+        assert_eq!(card_array.get_straight(), HandRank::None);
     }
 
     #[test]
@@ -195,7 +264,7 @@ mod tests {
         card_array.add_card(&Card::new(4, Suit::Hearts));
         card_array.add_card(&Card::new(5, Suit::Hearts));
         card_array.add_card(&Card::new(6, Suit::Hearts));
-        assert_eq!(card_array.is_straight_flush(), true);
+        assert_eq!(card_array.get_straight_flush(), HandRank::StraightFlush(card_array.clone()));
     }
 
     #[test]
@@ -206,7 +275,7 @@ mod tests {
         card_array.add_card(&Card::new(4, Suit::Hearts));
         card_array.add_card(&Card::new(5, Suit::Hearts));
         card_array.add_card(&Card::new(7, Suit::Hearts));
-        assert_eq!(card_array.is_straight_flush(), false);
+        assert_eq!(card_array.get_straight_flush(), HandRank::None);
     }
 
     #[test]

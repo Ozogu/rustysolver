@@ -44,6 +44,16 @@ impl Suit {
             Suit::Clubs => 3,
         }
     }
+
+    pub fn from_u8(s: u8) -> Self {
+        match s {
+            0 => Suit::Spades,
+            1 => Suit::Hearts,
+            2 => Suit::Diamonds,
+            3 => Suit::Clubs,
+            _ => panic!("Invalid suit: {}", s),
+        }
+    }
 }
 
 impl fmt::Display for Suit {
