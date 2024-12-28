@@ -19,6 +19,15 @@ impl Card {
 
 impl fmt::Display for Card {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{:}{:}", self.rank, self.suit)
+        let rank_str = self.rank.to_string();
+        let r = match self.rank {
+            14 => "A",
+            13 => "K",
+            12 => "Q",
+            11 => "J",
+            10 => "T",
+            _ => &rank_str,
+        };
+        write!(f, "{:}{:}", r, self.suit)
     }
 }

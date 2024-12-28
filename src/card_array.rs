@@ -1,7 +1,8 @@
 use crate::card::Card;
 use crate::hand_rank::HandRank;
+use std::fmt;
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone)]
 pub struct CardArray {
     pub rank_counts: [u8; 14],
     pub suit_counts: [u8; 4],
@@ -184,6 +185,41 @@ impl CardArray {
             .for_each(|card| relevant_cards.add_card(card));
     }
 
+}
+
+impl PartialOrd for CardArray {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        for i in (0..14).rev() {
+            if self.rank_counts[i] > other.rank_counts[i] {
+                return Some(std::cmp::Ordering::Greater);
+            } else if self.rank_counts[i] < other.rank_counts[i] {
+                return Some(std::cmp::Ordering::Less);
+            }
+        }
+
+        Some(std::cmp::Ordering::Equal)
+    }
+}
+
+impl PartialEq for CardArray {
+    fn eq(&self, other: &Self) -> bool {
+        // Do not compare cards as order could differ
+        self.rank_counts == other.rank_counts &&
+        self.suit_counts == other.suit_counts
+    }
+}
+
+impl Eq for CardArray {}
+
+impl fmt::Display for CardArray {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let mut cards_str = String::new();
+        for card in self.cards.iter() {
+            cards_str.push_str(&format!("{:}", card));
+        }
+
+        write!(f, "{}", cards_str)
+    }
 }
 
 #[cfg(test)]

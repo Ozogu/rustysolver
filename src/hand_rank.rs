@@ -1,8 +1,9 @@
 use crate::board::Board;
 use crate::hole_cards::HoleCards;
-use crate::card_array::CardArray;
+use crate::card_array::{self, CardArray};
+use std::fmt;
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug)]
 pub enum HandRank {
     StraightFlush(CardArray),
     FourOfAKind(CardArray),
@@ -46,7 +47,26 @@ impl HandRank {
             HandRank::None => panic!("Invalid card array"),
         }
     }
+
+    pub fn is_straight_flush(&self) -> bool { matches!(self, HandRank::StraightFlush(_)) }
+    pub fn is_four_of_a_kind(&self) -> bool { matches!(self, HandRank::FourOfAKind(_)) }
+    pub fn is_full_house(&self) -> bool { matches!(self, HandRank::FullHouse(_)) }
+    pub fn is_flush(&self) -> bool { matches!(self, HandRank::Flush(_)) }
+    pub fn is_straight(&self) -> bool { matches!(self, HandRank::Straight(_)) }
+    pub fn is_three_of_a_kind(&self) -> bool { matches!(self, HandRank::ThreeOfAKind(_)) }
+    pub fn is_two_pair(&self) -> bool { matches!(self, HandRank::TwoPair(_)) }
+    pub fn is_one_pair(&self) -> bool { matches!(self, HandRank::OnePair(_)) }
+    pub fn is_high_card(&self) -> bool { matches!(self, HandRank::HighCard(_)) }
+    pub fn is_none(&self) -> bool { matches!(self, HandRank::None) }
 }
+
+impl PartialEq for HandRank {
+    fn eq(&self, other: &Self) -> bool {
+        self.to_u8() == other.to_u8()
+    }
+}
+
+impl Eq for HandRank {}
 
 impl PartialOrd for HandRank {
     fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
@@ -61,13 +81,27 @@ impl PartialOrd for HandRank {
             let self_card_array = self.get_card_array();
             let other_card_array = other.get_card_array();
 
-            match self {
-                HandRank::StraightFlush(_) => compare_straight_flush(self_card_array, other_card_array),
-                _ => panic!("Invalid comparsion"),
-            }
+            self_card_array.partial_cmp(other_card_array)
         }
     }
 }        
+
+impl fmt::Display for HandRank {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            HandRank::StraightFlush(card_array) => write!(f, "Straight flush: {:}", card_array),
+            HandRank::FourOfAKind(card_array) => write!(f, "Four of a kind: {:}", card_array),
+            HandRank::FullHouse(card_array) => write!(f, "Full house: {:}", card_array),
+            HandRank::Flush(card_array) => write!(f, "Flush: {:}", card_array),
+            HandRank::Straight(card_array) => write!(f, "Straight: {:}", card_array),
+            HandRank::ThreeOfAKind(card_array) => write!(f, "Three of a kind: {:}", card_array),
+            HandRank::TwoPair(card_array) => write!(f, "Two pair: {:}", card_array),
+            HandRank::OnePair(card_array) => write!(f, "One pair: {:}", card_array),
+            HandRank::HighCard(card_array) => write!(f, "High card: {:}", card_array),
+            HandRank::None => write!(f, "None"),
+        }
+    }
+}
 
 pub fn player_wins(player: HoleCards, opponent: HoleCards, board: Board) -> Option<bool> {
     let player_rank = calculate_hand_rank(&player, &board);
@@ -81,44 +115,34 @@ pub fn player_wins(player: HoleCards, opponent: HoleCards, board: Board) -> Opti
     }
 }
 
-fn compare_straight_flush(self_card_array: &CardArray, other_card_array: &CardArray) -> Option<std::cmp::Ordering> {
-        Some(std::cmp::Ordering::Equal)
-}
-
 fn calculate_hand_rank(hole_cards: &HoleCards, board: &Board) -> HandRank {
-    // let card_array = to_card_array(hole_cards, board);
+    let mut card_array = CardArray::new();
+    card_array.add_card(&hole_cards.card1);
+    card_array.add_card(&hole_cards.card2);
+    for card    in &board.cards {
+        card_array.add_card(card);
+    }
 
-    // let is_flush = card_array.is_flush();
-    // let is_straight = card_array.is_straight();
-
-    // if is_flush && is_straight { return HandRank::StraightFlush(card_array); }
-    // let pair_type = card_array.get_pair_type();
-    // if pair_type == HandRank::FourOfAKind(card_array.clone()) { return pair_type; }
-    // else if pair_type == HandRank::FullHouse(card_array.clone()) { return pair_type; } 
-    // else if is_flush { return HandRank::Flush(card_array); }
-    // else if is_straight { return HandRank::Straight(card_array); }
-    // else if pair_type == HandRank::ThreeOfAKind(card_array.clone()) { return pair_type; }
-    // else if pair_type == HandRank::TwoPair(card_array.clone()) { return pair_type; }
-    // else if pair_type == HandRank::OnePair(card_array.clone()) { return pair_type; }
-    // else { return HandRank::HighCard(card_array.clone()); }
-
-    HandRank::None
+    if let straight_flush @ HandRank::StraightFlush(_) = card_array.get_straight_flush() { return straight_flush; }
+    let pair_type = card_array.get_pair_type();
+    if pair_type.is_four_of_a_kind() { return pair_type; }
+    else if pair_type.is_full_house() { return pair_type; } 
+    else if let flush @ HandRank::Flush(_) = card_array.get_flush() { return flush; }
+    else if let straight @ HandRank::Straight(_) = card_array.get_straight() { return straight; }
+    else if pair_type.is_three_of_a_kind() { return pair_type; }
+    else if pair_type.is_two_pair() { return pair_type; }
+    else if pair_type.is_one_pair() { return pair_type; }
+    else { return card_array.get_high_card(); }
 }
 
-fn to_card_array(hole_cards: &HoleCards, board: &Board) -> CardArray {
-    let mut cards = board.to_vec();
-    cards.push(hole_cards.card1.clone());
-    cards.push(hole_cards.card2.clone());
-
-    CardArray::from_vec(&cards)
-}
 
 #[cfg(test)]
 mod tests {
     use super::*;
     use crate::card::Card;
-    use crate::card_array;
+    use crate::player;
     use crate::suit::Suit;
+    use crate::hole_cards::HoleCards;
 
     #[test]
     fn test_flush_is_greater_than_straight() {
@@ -131,20 +155,362 @@ mod tests {
     }
 
     #[test]
-    fn test_quad_board() {
-        let mut card_array1 = CardArray::from_vec(&vec![
-                Card::new(4, Suit::Clubs),
-                Card::new(3, Suit::Clubs),
-                Card::new(2, Suit::Clubs),
-                Card::new(2, Suit::Diamonds),
-                Card::new(2, Suit::Spades),
-                Card::new(2, Suit::Hearts),
-            ]
-        );
+    fn test_compare_straight_flush() {
+        let player = HoleCards::new(&Card::new(2, Suit::Clubs), &Card::new(3, Suit::Clubs));
+        let opponent = HoleCards::new(&Card::new(7, Suit::Clubs), &Card::new(8, Suit::Clubs));
+        let board = Board::from_vec(vec![
+            Card::new(3, Suit::Clubs),
+            Card::new(4, Suit::Clubs),
+            Card::new(5, Suit::Clubs),
+            Card::new(6, Suit::Clubs),
+            Card::new(14, Suit::Clubs),
+        ]);
 
-        let card_array2 = card_array1.clone();
-        card_array1.ranks[0] = 3;
-        assert!(HandRank::FourOfAKind(card_array1) > HandRank::FourOfAKind(card_array2));
+        let player_rank = calculate_hand_rank(&player, &board);
+        let opponent_rank = calculate_hand_rank(&opponent, &board);
 
+        debug_assert_eq!(player_rank.is_straight_flush(), true, "Player rank: {:}", player_rank);
+        debug_assert_eq!(opponent_rank.is_straight_flush(), true, "Opponent rank: {:}", opponent_rank);
+        assert_eq!(player_wins(player, opponent, board), Some(true));
+    }
+
+    #[test]
+    fn test_equal_straight_flush() {
+        let player = HoleCards::new(&Card::new(12, Suit::Clubs), &Card::new(14, Suit::Clubs));
+        let opponent = HoleCards::new(&Card::new(13, Suit::Clubs), &Card::new(2, Suit::Clubs));
+        let board = Board::from_vec(vec![
+            Card::new(3, Suit::Clubs),
+            Card::new(4, Suit::Clubs),
+            Card::new(5, Suit::Clubs),
+            Card::new(6, Suit::Clubs),
+            Card::new(7, Suit::Clubs),
+        ]);
+
+        let player_rank = calculate_hand_rank(&player, &board);
+        let opponent_rank = calculate_hand_rank(&opponent, &board);
+
+        assert_eq!(player_rank.is_straight_flush(), true);
+        assert_eq!(opponent_rank.is_straight_flush(), true);
+        assert_eq!(player_wins(player, opponent, board), None);
+    }        
+
+    #[test]
+    fn test_compare_quad_board() {
+        let player = HoleCards::new(&Card::new(13, Suit::Clubs), &Card::new(3, Suit::Clubs));
+        let opponent = HoleCards::new(&Card::new(7, Suit::Clubs), &Card::new(8, Suit::Clubs));
+        let board = Board::from_vec(vec![
+            Card::new(3, Suit::Clubs),
+            Card::new(3, Suit::Diamonds),
+            Card::new(3, Suit::Hearts),
+            Card::new(3, Suit::Spades),
+            Card::new(2, Suit::Clubs),
+        ]);
+
+        let player_rank = calculate_hand_rank(&player, &board);
+        let opponent_rank = calculate_hand_rank(&opponent, &board);
+
+        debug_assert_eq!(player_rank.is_four_of_a_kind(), true, "Player rank: {:}", player_rank);
+        debug_assert_eq!(opponent_rank.is_four_of_a_kind(), true, "Opponent rank: {:}", opponent_rank);
+        assert_eq!(player_wins(player, opponent, board), Some(false));
+    }
+
+    #[test]
+    fn test_equal_quad_board() {
+        let player = HoleCards::new(&Card::new(13, Suit::Clubs), &Card::new(8, Suit::Clubs));
+        let opponent = HoleCards::new(&Card::new(13, Suit::Diamonds), &Card::new(8, Suit::Diamonds));
+        let board = Board::from_vec(vec![
+            Card::new(3, Suit::Clubs),
+            Card::new(3, Suit::Diamonds),
+            Card::new(3, Suit::Hearts),
+            Card::new(3, Suit::Spades),
+            Card::new(2, Suit::Clubs),
+        ]);
+
+        let player_rank = calculate_hand_rank(&player, &board);
+        let opponent_rank = calculate_hand_rank(&opponent, &board);
+
+        debug_assert_eq!(player_rank.is_four_of_a_kind(), true, "Player rank: {:}", player_rank);
+        debug_assert_eq!(opponent_rank.is_four_of_a_kind(), true, "Opponent rank: {:}", opponent_rank);
+        assert_eq!(player_wins(player, opponent, board), None);
+    }
+
+    #[test]
+    fn test_compare_full_house() {
+        let player = HoleCards::new(&Card::new(8, Suit::Clubs), &Card::new(2, Suit::Clubs));
+        let opponent = HoleCards::new(&Card::new(7, Suit::Clubs), &Card::new(13, Suit::Clubs));
+        let board = Board::from_vec(vec![
+            Card::new(3, Suit::Clubs),
+            Card::new(3, Suit::Diamonds),
+            Card::new(3, Suit::Hearts),
+            Card::new(8, Suit::Spades),
+            Card::new(8, Suit::Clubs),
+        ]);
+
+        let player_rank = calculate_hand_rank(&player, &board);
+        let opponent_rank = calculate_hand_rank(&opponent, &board);
+
+        debug_assert_eq!(player_rank.is_full_house(), true, "Player rank: {:}", player_rank);
+        debug_assert_eq!(opponent_rank.is_full_house(), true, "Opponent rank: {:}", opponent_rank);
+        assert_eq!(player_wins(player, opponent, board), Some(true));
+    }
+
+    #[test]
+    fn test_equal_full_house() {
+        let player = HoleCards::new(&Card::new(14, Suit::Clubs), &Card::new(13, Suit::Clubs));
+        let opponent = HoleCards::new(&Card::new(12, Suit::Diamonds), &Card::new(11, Suit::Diamonds));
+        let board = Board::from_vec(vec![
+            Card::new(3, Suit::Clubs),
+            Card::new(3, Suit::Diamonds),
+            Card::new(3, Suit::Hearts),
+            Card::new(8, Suit::Spades),
+            Card::new(8, Suit::Clubs),
+        ]);
+
+        let player_rank = calculate_hand_rank(&player, &board);
+        let opponent_rank = calculate_hand_rank(&opponent, &board);
+
+        debug_assert_eq!(player_rank.is_full_house(), true, "Player rank: {:}", player_rank);
+        debug_assert_eq!(opponent_rank.is_full_house(), true, "Opponent rank: {:}", opponent_rank);
+        assert_eq!(player_wins(player, opponent, board), None);
+    }
+
+    #[test]
+    fn test_compare_flush() {
+        let player = HoleCards::new(&Card::new(14, Suit::Clubs), &Card::new(13, Suit::Clubs));
+        let opponent = HoleCards::new(&Card::new(12, Suit::Diamonds), &Card::new(11, Suit::Diamonds));
+        let board = Board::from_vec(vec![
+            Card::new(3, Suit::Clubs),
+            Card::new(4, Suit::Clubs),
+            Card::new(5, Suit::Clubs),
+            Card::new(8, Suit::Clubs),
+            Card::new(9, Suit::Clubs),
+        ]);
+
+        let player_rank = calculate_hand_rank(&player, &board);
+        let opponent_rank = calculate_hand_rank(&opponent, &board);
+
+        debug_assert_eq!(player_rank.is_flush(), true, "Player rank: {:}", player_rank);
+        debug_assert_eq!(opponent_rank.is_flush(), true, "Opponent rank: {:}", opponent_rank);
+        assert_eq!(player_wins(player, opponent, board), Some(true));
+    }
+
+    #[test]
+    fn test_equal_flush() {
+        let player = HoleCards::new(&Card::new(14, Suit::Diamonds), &Card::new(13, Suit::Diamonds));
+        let opponent = HoleCards::new(&Card::new(12, Suit::Diamonds), &Card::new(11, Suit::Diamonds));
+        let board = Board::from_vec(vec![
+            Card::new(3, Suit::Clubs),
+            Card::new(4, Suit::Clubs),
+            Card::new(5, Suit::Clubs),
+            Card::new(8, Suit::Clubs),
+            Card::new(9, Suit::Clubs),
+        ]);
+
+        let player_rank = calculate_hand_rank(&player, &board);
+        let opponent_rank = calculate_hand_rank(&opponent, &board);
+
+        debug_assert_eq!(player_rank.is_flush(), true, "Player rank: {:}", player_rank);
+        debug_assert_eq!(opponent_rank.is_flush(), true, "Opponent rank: {:}", opponent_rank);
+        assert_eq!(player_wins(player, opponent, board), None);
+    }
+
+    #[test]
+    fn test_compare_straight() {
+        let player = HoleCards::new(&Card::new(2, Suit::Clubs), &Card::new(13, Suit::Clubs));
+        let opponent = HoleCards::new(&Card::new(8, Suit::Diamonds), &Card::new(11, Suit::Diamonds));
+        let board = Board::from_vec(vec![
+            Card::new(3, Suit::Clubs),
+            Card::new(4, Suit::Clubs),
+            Card::new(5, Suit::Clubs),
+            Card::new(6, Suit::Spades),
+            Card::new(7, Suit::Clubs),
+        ]);
+
+        let player_rank = calculate_hand_rank(&player, &board);
+        let opponent_rank = calculate_hand_rank(&opponent, &board);
+
+        debug_assert_eq!(player_rank.is_straight(), true, "Player rank: {:}", player_rank);
+        debug_assert_eq!(opponent_rank.is_straight(), true, "Opponent rank: {:}", opponent_rank);
+        assert_eq!(player_wins(player, opponent, board), Some(true));
+    }
+
+    #[test]
+    fn test_equal_straight() {
+        let player = HoleCards::new(&Card::new(2, Suit::Clubs), &Card::new(13, Suit::Clubs));
+        let opponent = HoleCards::new(&Card::new(9, Suit::Diamonds), &Card::new(11, Suit::Diamonds));
+        let board = Board::from_vec(vec![
+            Card::new(3, Suit::Clubs),
+            Card::new(4, Suit::Clubs),
+            Card::new(5, Suit::Clubs),
+            Card::new(6, Suit::Spades),
+            Card::new(7, Suit::Clubs),
+        ]);
+
+        let player_rank = calculate_hand_rank(&player, &board);
+        let opponent_rank = calculate_hand_rank(&opponent, &board);
+
+        debug_assert_eq!(player_rank.is_straight(), true, "Player rank: {:}", player_rank);
+        debug_assert_eq!(opponent_rank.is_straight(), true, "Opponent rank: {:}", opponent_rank);
+        assert_eq!(player_wins(player, opponent, board), Some(true));
+    }
+
+    #[test]
+    fn test_compare_trips() {
+        let player = HoleCards::new(&Card::new(2, Suit::Clubs), &Card::new(13, Suit::Clubs));
+        let opponent = HoleCards::new(&Card::new(8, Suit::Diamonds), &Card::new(11, Suit::Diamonds));
+        let board = Board::from_vec(vec![
+            Card::new(3, Suit::Clubs),
+            Card::new(3, Suit::Diamonds),
+            Card::new(3, Suit::Hearts),
+            Card::new(6, Suit::Spades),
+            Card::new(7, Suit::Clubs),
+        ]);
+
+        let player_rank = calculate_hand_rank(&player, &board);
+        let opponent_rank = calculate_hand_rank(&opponent, &board);
+
+        debug_assert_eq!(player_rank.is_three_of_a_kind(), true, "Player rank: {:}", player_rank);
+        debug_assert_eq!(opponent_rank.is_three_of_a_kind(), true, "Opponent rank: {:}", opponent_rank);
+        assert_eq!(player_wins(player, opponent, board), Some(true));
+    }
+
+    #[test]
+    fn test_equal_trips() {
+        let player = HoleCards::new(&Card::new(5, Suit::Clubs), &Card::new(4, Suit::Clubs));
+        let opponent = HoleCards::new(&Card::new(4, Suit::Diamonds), &Card::new(2, Suit::Diamonds));
+        let board = Board::from_vec(vec![
+            Card::new(3, Suit::Clubs),
+            Card::new(3, Suit::Diamonds),
+            Card::new(3, Suit::Hearts),
+            Card::new(6, Suit::Spades),
+            Card::new(7, Suit::Clubs),
+        ]);
+
+        let player_rank = calculate_hand_rank(&player, &board);
+        let opponent_rank = calculate_hand_rank(&opponent, &board);
+
+        debug_assert_eq!(player_rank.is_three_of_a_kind(), true, "Player rank: {:}", player_rank);
+        debug_assert_eq!(opponent_rank.is_three_of_a_kind(), true, "Opponent rank: {:}", opponent_rank);
+        assert_eq!(player_wins(player, opponent, board), Some(true));
+    }
+
+    #[test]
+    fn test_compare_two_pair() {
+        let player = HoleCards::new(&Card::new(13, Suit::Clubs), &Card::new(13, Suit::Clubs));
+        let opponent = HoleCards::new(&Card::new(6, Suit::Diamonds), &Card::new(14, Suit::Diamonds));
+        let board = Board::from_vec(vec![
+            Card::new(3, Suit::Clubs),
+            Card::new(3, Suit::Diamonds),
+            Card::new(2, Suit::Hearts),
+            Card::new(2, Suit::Spades),
+            Card::new(5, Suit::Clubs),
+        ]);
+
+        let player_rank = calculate_hand_rank(&player, &board);
+        let opponent_rank = calculate_hand_rank(&opponent, &board);
+
+        debug_assert_eq!(player_rank.is_two_pair(), true, "Player rank: {:}", player_rank);
+        debug_assert_eq!(opponent_rank.is_two_pair(), true, "Opponent rank: {:}", opponent_rank);
+        assert_eq!(player_wins(player, opponent, board), Some(true));
+    }
+
+    #[test]
+    fn test_equal_two_pair() {
+        let player = HoleCards::new(&Card::new(6, Suit::Clubs), &Card::new(7, Suit::Clubs));
+        let opponent = HoleCards::new(&Card::new(6, Suit::Diamonds), &Card::new(7, Suit::Diamonds));
+        let board = Board::from_vec(vec![
+            Card::new(3, Suit::Clubs),
+            Card::new(3, Suit::Diamonds),
+            Card::new(2, Suit::Hearts),
+            Card::new(2, Suit::Spades),
+            Card::new(5, Suit::Clubs),
+        ]);
+
+        let player_rank = calculate_hand_rank(&player, &board);
+        let opponent_rank = calculate_hand_rank(&opponent, &board);
+
+        debug_assert_eq!(player_rank.is_two_pair(), true, "Player rank: {:}", player_rank);
+        debug_assert_eq!(opponent_rank.is_two_pair(), true, "Opponent rank: {:}", opponent_rank);
+        assert_eq!(player_wins(player, opponent, board), Some(true));
+    }
+
+    #[test]
+    fn test_compare_one_pair() {
+        let player = HoleCards::new(&Card::new(7, Suit::Clubs), &Card::new(3, Suit::Clubs));
+        let opponent = HoleCards::new(&Card::new(14, Suit::Clubs), &Card::new(6, Suit::Spades));
+        let board = Board::from_vec(vec![
+            Card::new(2, Suit::Diamonds),
+            Card::new(6, Suit::Hearts),
+            Card::new(5, Suit::Clubs),
+            Card::new(7, Suit::Clubs),
+            Card::new(8, Suit::Clubs),
+        ]);
+
+        let player_rank = calculate_hand_rank(&player, &board);
+        let opponent_rank = calculate_hand_rank(&opponent, &board);
+
+        debug_assert_eq!(player_rank.is_one_pair(), true, "Player rank: {:}", player_rank);
+        debug_assert_eq!(opponent_rank.is_one_pair(), true, "Opponent rank: {:}", opponent_rank);
+        assert_eq!(player_wins(player, opponent, board), Some(true));
+    }
+
+    #[test]
+    fn test_equal_one_pair() {
+        let player = HoleCards::new(&Card::new(7, Suit::Clubs), &Card::new(3, Suit::Clubs));
+        let opponent = HoleCards::new(&Card::new(7, Suit::Clubs), &Card::new(4, Suit::Spades));
+        let board = Board::from_vec(vec![
+            Card::new(14, Suit::Diamonds),
+            Card::new(13, Suit::Hearts),
+            Card::new(12, Suit::Clubs),
+            Card::new(7, Suit::Clubs),
+            Card::new(8, Suit::Clubs),
+        ]);
+
+        let player_rank = calculate_hand_rank(&player, &board);
+        let opponent_rank = calculate_hand_rank(&opponent, &board);
+
+        debug_assert_eq!(player_rank.is_one_pair(), true, "Player rank: {:}", player_rank);
+        debug_assert_eq!(opponent_rank.is_one_pair(), true, "Opponent rank: {:}", opponent_rank);
+        assert_eq!(player_wins(player, opponent, board), Some(true));
+    }
+
+    #[test]
+    fn test_compare_high_card() {
+        let player = HoleCards::new(&Card::new(14, Suit::Clubs), &Card::new(3, Suit::Clubs));
+        let opponent = HoleCards::new(&Card::new(4, Suit::Clubs), &Card::new(2, Suit::Diamonds));
+        let board = Board::from_vec(vec![
+            Card::new(6, Suit::Spades),
+            Card::new(5, Suit::Hearts),
+            Card::new(8, Suit::Clubs),
+            Card::new(9, Suit::Clubs),
+            Card::new(10, Suit::Clubs),
+        ]);
+
+        let player_rank = calculate_hand_rank(&player, &board);
+        let opponent_rank = calculate_hand_rank(&opponent, &board);
+
+        debug_assert_eq!(player_rank.is_high_card(), true, "Player rank: {:}", player_rank);
+        debug_assert_eq!(opponent_rank.is_high_card(), true, "Opponent rank: {:}", opponent_rank);
+        assert_eq!(player_wins(player, opponent, board), Some(false));
+    }
+
+    #[test]
+    fn test_equal_high_card() {
+        let player = HoleCards::new(&Card::new(14, Suit::Clubs), &Card::new(3, Suit::Clubs));
+        let opponent = HoleCards::new(&Card::new(14, Suit::Clubs), &Card::new(2, Suit::Diamonds));
+        let board = Board::from_vec(vec![
+            Card::new(6, Suit::Spades),
+            Card::new(5, Suit::Hearts),
+            Card::new(8, Suit::Clubs),
+            Card::new(9, Suit::Clubs),
+            Card::new(10, Suit::Clubs),
+        ]);
+
+        let player_rank = calculate_hand_rank(&player, &board);
+        let opponent_rank = calculate_hand_rank(&opponent, &board);
+
+        debug_assert_eq!(player_rank.is_high_card(), true, "Player rank: {:}", player_rank);
+        debug_assert_eq!(opponent_rank.is_high_card(), true, "Opponent rank: {:}", opponent_rank);
+        assert_eq!(player_wins(player, opponent, board), None);
     }
 }
