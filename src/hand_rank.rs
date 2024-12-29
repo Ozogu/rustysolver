@@ -48,6 +48,21 @@ impl HandRank {
         }
     }
 
+    pub fn set_card_array(&mut self, arr: CardArray) {
+        match self {
+            HandRank::StraightFlush(card_array) => *card_array = arr,
+            HandRank::FourOfAKind(card_array) => *card_array = arr,
+            HandRank::FullHouse(card_array) => *card_array = arr,
+            HandRank::Flush(card_array) => *card_array = arr,
+            HandRank::Straight(card_array) => *card_array = arr,
+            HandRank::ThreeOfAKind(card_array) => *card_array = arr,
+            HandRank::TwoPair(card_array) => *card_array = arr,
+            HandRank::OnePair(card_array) => *card_array = arr,
+            HandRank::HighCard(card_array) => *card_array = arr,
+            HandRank::None => panic!("Invalid card array"),
+        }
+    }
+
     pub fn is_straight_flush(&self) -> bool { matches!(self, HandRank::StraightFlush(_)) }
     pub fn is_four_of_a_kind(&self) -> bool { matches!(self, HandRank::FourOfAKind(_)) }
     pub fn is_full_house(&self) -> bool { matches!(self, HandRank::FullHouse(_)) }
@@ -84,7 +99,7 @@ impl PartialOrd for HandRank {
             self_card_array.partial_cmp(other_card_array)
         }
     }
-}        
+}
 
 impl fmt::Display for HandRank {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
@@ -126,7 +141,7 @@ fn calculate_hand_rank(hole_cards: &HoleCards, board: &Board) -> HandRank {
     if let straight_flush @ HandRank::StraightFlush(_) = card_array.get_straight_flush() { return straight_flush; }
     let pair_type = card_array.get_pair_type();
     if pair_type.is_four_of_a_kind() { return pair_type; }
-    else if pair_type.is_full_house() { return pair_type; } 
+    else if pair_type.is_full_house() { return pair_type; }
     else if let flush @ HandRank::Flush(_) = card_array.get_flush() { return flush; }
     else if let straight @ HandRank::Straight(_) = card_array.get_straight() { return straight; }
     else if pair_type.is_three_of_a_kind() { return pair_type; }
@@ -140,7 +155,6 @@ fn calculate_hand_rank(hole_cards: &HoleCards, board: &Board) -> HandRank {
 mod tests {
     use super::*;
     use crate::card::Card;
-    use crate::player;
     use crate::suit::Suit;
     use crate::hole_cards::HoleCards;
 
@@ -179,11 +193,11 @@ mod tests {
         let player = HoleCards::new(&Card::new(12, Suit::Clubs), &Card::new(14, Suit::Clubs));
         let opponent = HoleCards::new(&Card::new(13, Suit::Clubs), &Card::new(2, Suit::Clubs));
         let board = Board::from_vec(vec![
+            Card::new(2, Suit::Clubs),
             Card::new(3, Suit::Clubs),
             Card::new(4, Suit::Clubs),
             Card::new(5, Suit::Clubs),
             Card::new(6, Suit::Clubs),
-            Card::new(7, Suit::Clubs),
         ]);
 
         let player_rank = calculate_hand_rank(&player, &board);
@@ -192,7 +206,7 @@ mod tests {
         assert_eq!(player_rank.is_straight_flush(), true);
         assert_eq!(opponent_rank.is_straight_flush(), true);
         assert_eq!(player_wins(player, opponent, board), None);
-    }        
+    }
 
     #[test]
     fn test_compare_quad_board() {
@@ -320,8 +334,8 @@ mod tests {
         let opponent = HoleCards::new(&Card::new(8, Suit::Diamonds), &Card::new(11, Suit::Diamonds));
         let board = Board::from_vec(vec![
             Card::new(3, Suit::Clubs),
-            Card::new(4, Suit::Clubs),
-            Card::new(5, Suit::Clubs),
+            Card::new(4, Suit::Diamonds),
+            Card::new(5, Suit::Diamonds),
             Card::new(6, Suit::Spades),
             Card::new(7, Suit::Clubs),
         ]);
@@ -340,8 +354,8 @@ mod tests {
         let opponent = HoleCards::new(&Card::new(9, Suit::Diamonds), &Card::new(11, Suit::Diamonds));
         let board = Board::from_vec(vec![
             Card::new(3, Suit::Clubs),
-            Card::new(4, Suit::Clubs),
-            Card::new(5, Suit::Clubs),
+            Card::new(4, Suit::Spades),
+            Card::new(5, Suit::Spades),
             Card::new(6, Suit::Spades),
             Card::new(7, Suit::Clubs),
         ]);
@@ -382,8 +396,8 @@ mod tests {
             Card::new(3, Suit::Clubs),
             Card::new(3, Suit::Diamonds),
             Card::new(3, Suit::Hearts),
-            Card::new(6, Suit::Spades),
             Card::new(7, Suit::Clubs),
+            Card::new(13, Suit::Spades),
         ]);
 
         let player_rank = calculate_hand_rank(&player, &board);
@@ -431,7 +445,7 @@ mod tests {
 
         debug_assert_eq!(player_rank.is_two_pair(), true, "Player rank: {:}", player_rank);
         debug_assert_eq!(opponent_rank.is_two_pair(), true, "Opponent rank: {:}", opponent_rank);
-        assert_eq!(player_wins(player, opponent, board), Some(true));
+        assert_eq!(player_wins(player, opponent, board), None);
     }
 
     #[test]
@@ -441,7 +455,7 @@ mod tests {
         let board = Board::from_vec(vec![
             Card::new(2, Suit::Diamonds),
             Card::new(6, Suit::Hearts),
-            Card::new(5, Suit::Clubs),
+            Card::new(5, Suit::Spades),
             Card::new(7, Suit::Clubs),
             Card::new(8, Suit::Clubs),
         ]);
@@ -481,7 +495,7 @@ mod tests {
         let board = Board::from_vec(vec![
             Card::new(6, Suit::Spades),
             Card::new(5, Suit::Hearts),
-            Card::new(8, Suit::Clubs),
+            Card::new(8, Suit::Spades),
             Card::new(9, Suit::Clubs),
             Card::new(10, Suit::Clubs),
         ]);
@@ -501,7 +515,7 @@ mod tests {
         let board = Board::from_vec(vec![
             Card::new(6, Suit::Spades),
             Card::new(5, Suit::Hearts),
-            Card::new(8, Suit::Clubs),
+            Card::new(8, Suit::Spades),
             Card::new(9, Suit::Clubs),
             Card::new(10, Suit::Clubs),
         ]);

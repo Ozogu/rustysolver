@@ -1,6 +1,6 @@
 use crate::card::{self, Card};
 use crate::hand_rank::HandRank;
-use std::fmt;
+use std::{fmt, iter};
 
 #[derive(Debug, Clone)]
 pub struct CardArray {
@@ -49,7 +49,7 @@ impl CardArray {
     }
 
     pub fn get_flush(&self) -> HandRank {
-        
+
         for (suit, count) in self.suit_counts.iter().enumerate() {
             if *count >= 5 {
                 let mut relevant_cards = CardArray::new();
@@ -61,6 +61,10 @@ impl CardArray {
                 }
 
                 relevant_cards.cards.sort_by(|a, b| b.rank.cmp(&a.rank));
+                while relevant_cards.cards.len() > 5 {
+                    relevant_cards.cards.pop();
+                }
+
                 return HandRank::Flush(relevant_cards);
             }
         }
@@ -89,31 +93,29 @@ impl CardArray {
                 sum = 0;
             }
         }
-        
+
         HandRank::None
     }
 
     pub fn get_pair_type(&self) -> HandRank {
         let mut pair_type = HandRank::None;
         let mut relevant_cards = CardArray::new();
-        let mut counts = Vec::new();
-        for count in self.rank_counts.iter() { if count > &1 { counts.push(count); } }
-        counts.sort_by(|a, b| b.cmp(a));
+        let counts = self.find_pair_type_counts();
 
         for count in counts.iter() {
             if pair_type == HandRank::None {
-                pair_type = self.pair_type_from_card_count(**count);
-                self.add_relevant_pair_cards(&mut relevant_cards, **count);
+                pair_type = self.pair_type_from_card_count(count.0);
+                self.add_relevant_pair_cards(&mut relevant_cards, count.1);
                 if pair_type.is_four_of_a_kind() { break; }
             } else {
                 match pair_type {
                     HandRank::OnePair(_) => {
-                        pair_type = self.many_pair_type_from_pair(**count);
-                        self.add_relevant_pair_cards(&mut relevant_cards, **count);
+                        pair_type = self.many_pair_type_from_pair(count.0);
+                        self.add_relevant_pair_cards(&mut relevant_cards, count.1);
                     },
                     HandRank::ThreeOfAKind(_) => {
-                        pair_type = self.many_pair_type_from_trips(**count);
-                        self.add_relevant_pair_cards(&mut relevant_cards, **count);
+                        pair_type = self.many_pair_type_from_trips(count.0);
+                        self.add_relevant_pair_cards(&mut relevant_cards, count.1);
                     },
                     _ => panic!("Invalid pair type"),
                 }
@@ -121,12 +123,14 @@ impl CardArray {
                 break;
             }
         }
-        
+
         if pair_type != HandRank::None {
             self.fill_relevant_cards(&mut relevant_cards);
+            pair_type.set_card_array(relevant_cards);
+
             return pair_type;
         }
-    
+
         pair_type
     }
 
@@ -136,7 +140,26 @@ impl CardArray {
 
         HandRank::HighCard(relevant_cards)
     }
-    
+
+    fn find_pair_type_counts(&self) -> Vec<(u8, u8)> {
+        let mut counts = Vec::new();
+        for (i, count) in self.rank_counts.iter().enumerate() {
+            if *count > 1 {
+                counts.push((*count, (i+1) as u8));
+            }
+        }
+        counts.sort_by(|a, b| {
+            let primary_cmp = b.0.cmp(&a.0);
+            if primary_cmp == std::cmp::Ordering::Equal {
+                b.1.cmp(&a.1)
+            } else {
+                primary_cmp
+            }
+        });
+
+        counts
+    }
+
     fn pair_type_from_card_count(&self, card_count: u8) -> HandRank {
         match card_count {
             2 => HandRank::OnePair(self.clone()),
@@ -157,6 +180,7 @@ impl CardArray {
     fn many_pair_type_from_trips(&self, card_count: u8) -> HandRank {
         match card_count {
             2 => HandRank::FullHouse(self.clone()),
+            3 => HandRank::FullHouse(self.clone()), // Board with 2 trips
             _ => panic!("Invalid pair type"),
         }
     }
@@ -165,14 +189,17 @@ impl CardArray {
         for card in self.cards.iter() {
             if card.rank == count {
                 relevant_cards.add_card(&card);
+                if relevant_cards.cards.len() == 5 {
+                    break;
+                }
             }
         }
     }
 
-    fn inner_join(&self, other: &CardArray) -> CardArray {
+    fn left_exclusive_join(&self, other: &CardArray) -> CardArray {
         let mut joined = CardArray::new();
         for card in self.cards.iter() {
-            if other.cards.contains(card) {
+            if !other.cards.contains(card) {
                 joined.add_card(card);
             }
         }
@@ -181,12 +208,15 @@ impl CardArray {
     }
 
     fn fill_relevant_cards(&self, relevant_cards: &mut CardArray) {
-        let mut inner_joined = self.inner_join(&relevant_cards);
-        inner_joined.cards.sort_by(|a, b| b.rank.cmp(&a.rank));
+        let mut joined = self.left_exclusive_join(&relevant_cards);
+        joined.cards.sort_by(|a, b| b.rank.cmp(&a.rank));
 
         let fill_num = 5 - relevant_cards.cards.len();
-        inner_joined.cards.iter().take(fill_num)
+        joined.cards.iter().take(fill_num)
             .for_each(|card| relevant_cards.add_card(card));
+
+        debug_assert!(relevant_cards.cards.len() == 5, "Invalid relevant cards {:} {:}",
+            relevant_cards.cards.len(), relevant_cards);
     }
 
 }
@@ -298,7 +328,7 @@ mod tests {
         card_array.add_card(&Card::new(5, Suit::Hearts));
         card_array.add_card(&Card::new(5, Suit::Hearts));
         card_array.add_card(&Card::new(6, Suit::Spades));
-        
+
         let straight = card_array.get_straight();
         let expected = vec![
             Card::new(2, Suit::Hearts),
