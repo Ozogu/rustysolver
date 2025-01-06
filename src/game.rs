@@ -1,5 +1,4 @@
 use crate::deck::Deck;
-use crate::hand_rank::HandRank;
 use crate::hand_rank::player_wins;
 use crate::history::History;
 use crate::hole_cards::HoleCards;
@@ -36,8 +35,8 @@ pub trait Game {
         let cards = PlayerCards::new(ip_cards, oop_cards);
 
         Deal::new(cards, deck)
-    } 
-    
+    }
+
     fn player_wins(&self, node: &Node) -> Option<bool> {
         let last = node.history.last().unwrap().action();
         match last {
@@ -49,11 +48,11 @@ pub trait Game {
             _ => panic!("Invalid action: {:?}", last),
         }
     }
-    
+
     fn generate_deals(&self) -> Vec<Deal> {
         let mut deals = Vec::new();
         let mut deck = self.deck();
-        
+
         for _ in 0..deck.len() {
             let card = deck.draw().unwrap().rank;
             let cards1 = HoleCards::new_with_rank(card);
@@ -61,7 +60,7 @@ pub trait Game {
             for _ in 0..deck_clone.len() {
                 let card = deck_clone.draw().unwrap().rank;
                 let cards2 = HoleCards::new_with_rank(card);
-                
+
                 let deal1 = Deal::new(PlayerCards::new(cards1.clone(), cards2.clone()), deck_clone.clone());
                 let deal2 = Deal::new(PlayerCards::new(cards2.clone(), cards1.clone()), deck_clone.clone());
 

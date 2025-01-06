@@ -33,12 +33,12 @@ mod tests {
     #[test]
     fn test_new() {
         let player = Player::IP;
-        let hole_cards = HoleCards::new_with_rank(0);
+        let hole_cards = HoleCards::new_with_rank(1);
         let history = History::new();
         let info_state = InfoState::new(player, hole_cards, history);
 
         assert_eq!(info_state.player, Player::IP);
-        assert_eq!(info_state.hole_cards, HoleCards::new_with_rank(0));
+        assert_eq!(info_state.hole_cards, HoleCards::new_with_rank(1));
         assert_eq!(info_state.history, History::new());
     }
 }

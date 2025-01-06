@@ -1,6 +1,6 @@
 use crate::board::Board;
 use crate::hole_cards::HoleCards;
-use crate::card_array::{self, CardArray};
+use crate::card_array::CardArray;
 use std::fmt;
 
 #[derive(Debug)]

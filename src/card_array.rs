@@ -225,9 +225,6 @@ impl CardArray {
         let fill_num = 5 - relevant_cards.cards.len();
         joined.cards.iter().take(fill_num)
             .for_each(|card| relevant_cards.add_card(card));
-
-        debug_assert!(relevant_cards.cards.len() == 5, "Invalid relevant cards {:} {:}",
-            relevant_cards.cards.len(), relevant_cards);
     }
 
     fn partial_compare_pairs(&self, other: &Self) -> Option<Ordering> {

@@ -9,10 +9,12 @@ pub struct Card {
 
 impl Card {
     pub fn new(rank: u8, suit: Suit) -> Self {
+        assert!(rank >= 1 && rank <= 14);
         Card { rank, suit }
     }
 
     pub fn new_with_rank(rank: u8) -> Self {
+        assert!(rank >= 1 && rank <= 14);
         Card { rank, suit: Suit::Diamonds }
     }
 }

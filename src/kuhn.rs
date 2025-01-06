@@ -32,9 +32,9 @@ impl Game for Kuhn {
 
     fn deck(&self) -> Deck {
         Deck::new_from_cards(vec![
-            Card::new(0, Suit::Diamonds),
             Card::new(1, Suit::Diamonds),
             Card::new(2, Suit::Diamonds),
+            Card::new(3, Suit::Diamonds),
         ])
     }
 
@@ -91,7 +91,7 @@ mod tests {
     fn test_player_wins_xx() {
         let kuhn = Kuhn::new();
         let deal = Deal::new(
-            PlayerCards::new(HoleCards::new_with_rank(0), HoleCards::new_with_rank(1)),
+            PlayerCards::new(HoleCards::new_with_rank(1), HoleCards::new_with_rank(2)),
             Deck::new_empty()
         );
         let node = Node::new(&kuhn, deal);
@@ -104,7 +104,7 @@ mod tests {
     fn test_player_wins_xbf() {
         let kuhn = Kuhn::new();
         let deal = Deal::new(
-            PlayerCards::new(HoleCards::new_with_rank(0), HoleCards::new_with_rank(1)),
+            PlayerCards::new(HoleCards::new_with_rank(1), HoleCards::new_with_rank(2)),
             Deck::new_empty()
         );
         let node = Node::new(&kuhn, deal);
@@ -118,7 +118,7 @@ mod tests {
     fn test_player_wins_xbc() {
         let kuhn = Kuhn::new();
         let deal = Deal::new(
-            PlayerCards::new(HoleCards::new_with_rank(0), HoleCards::new_with_rank(1)),
+            PlayerCards::new(HoleCards::new_with_rank(1), HoleCards::new_with_rank(2)),
             Deck::new_empty()
         );
         let node = Node::new(&kuhn, deal);
@@ -132,7 +132,7 @@ mod tests {
     fn test_player_wins_bf() {
         let kuhn = Kuhn::new();
         let deal = Deal::new(
-            PlayerCards::new(HoleCards::new_with_rank(0), HoleCards::new_with_rank(1)),
+            PlayerCards::new(HoleCards::new_with_rank(1), HoleCards::new_with_rank(2)),
             Deck::new_empty()
         );
         let node = Node::new(&kuhn, deal);
@@ -145,7 +145,7 @@ mod tests {
     fn test_player_wins_bc() {
         let kuhn = Kuhn::new();
         let deal = Deal::new(
-            PlayerCards::new(HoleCards::new_with_rank(0), HoleCards::new_with_rank(1)),
+            PlayerCards::new(HoleCards::new_with_rank(1), HoleCards::new_with_rank(2)),
             Deck::new_empty()
         );
         let node = Node::new(&kuhn, deal);

@@ -37,8 +37,8 @@ mod tests {
 
     #[test]
     fn test_player_cards() {
-        let ip = HoleCards::new_with_rank(0);
-        let oop = HoleCards::new_with_rank(1);
+        let ip = HoleCards::new_with_rank(1);
+        let oop = HoleCards::new_with_rank(2);
         let player_cards = PlayerCards::new(ip.clone(), oop.clone());
         assert_eq!(player_cards.get(Player::IP), ip);
         assert_eq!(player_cards.get(Player::OOP), oop);
