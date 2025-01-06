@@ -1,6 +1,7 @@
-use crate::card::{self, Card};
+use crate::card::Card;
 use crate::hand_rank::HandRank;
-use std::{fmt, iter};
+use std::fmt;
+use std::cmp::Ordering;
 
 #[derive(Debug, Clone)]
 pub struct CardArray {
@@ -37,11 +38,20 @@ impl CardArray {
     }
 
     pub fn get_straight_flush(&self) -> HandRank {
-        let flush = self.get_flush();
-        if flush.is_flush() {
-            let flush_card_array = flush.get_card_array();
-            if flush_card_array.get_straight().is_straight() {
-                return HandRank::StraightFlush(flush_card_array.clone());
+        for (suit, count) in self.suit_counts.iter().enumerate() {
+            if *count >= 5 {
+                let mut relevant_cards = CardArray::new();
+
+                for card in self.cards.iter() {
+                    if card.suit.to_usize() == suit {
+                        relevant_cards.add_card(card);
+                    }
+                }
+
+                let straight = relevant_cards.get_straight();
+                if straight.is_straight() {
+                    return HandRank::StraightFlush(straight.get_card_array().clone());
+                }
             }
         }
 
@@ -49,7 +59,6 @@ impl CardArray {
     }
 
     pub fn get_flush(&self) -> HandRank {
-
         for (suit, count) in self.suit_counts.iter().enumerate() {
             if *count >= 5 {
                 let mut relevant_cards = CardArray::new();
@@ -77,9 +86,10 @@ impl CardArray {
         for (i, count) in self.rank_counts.iter().enumerate() {
             if count > &0 {
                 sum += 1;
-                if sum == 5 {
+            } else {
+                if sum > 4 {
                     let mut relevant_cards = CardArray::new();
-                    for straight_card in i-4..i+1 {
+                    for straight_card in i-5..i {
                         for card in self.cards.iter() {
                             if card.rank == (straight_card+1) as u8 {
                                 relevant_cards.add_card(&card);
@@ -89,7 +99,7 @@ impl CardArray {
                     }
                     return HandRank::Straight(relevant_cards);
                 }
-            } else {
+
                 sum = 0;
             }
         }
@@ -141,6 +151,7 @@ impl CardArray {
         HandRank::HighCard(relevant_cards)
     }
 
+    // Return (count, rank) pairs sorted by count and rank
     fn find_pair_type_counts(&self) -> Vec<(u8, u8)> {
         let mut counts = Vec::new();
         for (i, count) in self.rank_counts.iter().enumerate() {
@@ -219,19 +230,48 @@ impl CardArray {
             relevant_cards.cards.len(), relevant_cards);
     }
 
-}
+    fn partial_compare_pairs(&self, other: &Self) -> Option<Ordering> {
+        let self_counts = self.find_pair_type_counts();
+        if self_counts.len() > 0 {
+            let other_counts = other.find_pair_type_counts();
+           for i in 0..self_counts.len() {
+                if other_counts.len() <= i {
+                    return Some(Ordering::Greater);
+                }
 
-impl PartialOrd for CardArray {
-    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
-        for i in (0..14).rev() {
-            if self.rank_counts[i] > other.rank_counts[i] {
-                return Some(std::cmp::Ordering::Greater);
-            } else if self.rank_counts[i] < other.rank_counts[i] {
-                return Some(std::cmp::Ordering::Less);
+                let self_count = self_counts[i];
+                let other_count = other_counts[i];
+                if self_count.0 > other_count.0 {
+                    return Some(Ordering::Greater);
+                } else if self_count.0 < other_count.0 {
+                    return Some(Ordering::Less);
+                } else if self_count.1 > other_count.1 {
+                    return Some(Ordering::Greater);
+                } else if self_count.1 < other_count.1 {
+                    return Some(Ordering::Less);
+                }
             }
         }
 
-        Some(std::cmp::Ordering::Equal)
+        None
+    }
+}
+
+impl PartialOrd for CardArray {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        if let Some(cmp) = self.partial_compare_pairs(other) {
+            return Some(cmp);
+        }
+
+        for i in (0..14).rev() {
+            if self.rank_counts[i] > other.rank_counts[i] {
+                return Some(Ordering::Greater);
+            } else if self.rank_counts[i] < other.rank_counts[i] {
+                return Some(Ordering::Less);
+            }
+        }
+
+        Some(Ordering::Equal)
     }
 }
 
@@ -338,7 +378,31 @@ mod tests {
             Card::new(6, Suit::Spades),
         ];
 
-        assert_eq!(straight.get_card_array().cards, expected);
+        debug_assert_eq!(straight.get_card_array().cards, expected,
+            "Expected: {} Got: {}", CardArray::from_vec(&expected), straight.get_card_array());
+    }
+
+    #[test]
+    fn test_finding_best_straight() {
+        let mut card_array = CardArray::new();
+        card_array.add_card(&Card::new(2, Suit::Hearts));
+        card_array.add_card(&Card::new(3, Suit::Hearts));
+        card_array.add_card(&Card::new(4, Suit::Hearts));
+        card_array.add_card(&Card::new(5, Suit::Hearts));
+        card_array.add_card(&Card::new(6, Suit::Spades));
+        card_array.add_card(&Card::new(7, Suit::Spades));
+
+        let straight = card_array.get_straight();
+        let expected = vec![
+            Card::new(3, Suit::Hearts),
+            Card::new(4, Suit::Hearts),
+            Card::new(5, Suit::Hearts),
+            Card::new(6, Suit::Spades),
+            Card::new(7, Suit::Spades),
+        ];
+
+        debug_assert_eq!(straight.get_card_array().cards, expected,
+            "Expected: {} Got: {}", CardArray::from_vec(&expected), straight.get_card_array());
     }
 
     #[test]

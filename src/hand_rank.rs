@@ -134,7 +134,7 @@ fn calculate_hand_rank(hole_cards: &HoleCards, board: &Board) -> HandRank {
     let mut card_array = CardArray::new();
     card_array.add_card(&hole_cards.card1);
     card_array.add_card(&hole_cards.card2);
-    for card    in &board.cards {
+    for card in &board.cards {
         card_array.add_card(card);
     }
 
@@ -170,7 +170,7 @@ mod tests {
 
     #[test]
     fn test_compare_straight_flush() {
-        let player = HoleCards::new(&Card::new(2, Suit::Clubs), &Card::new(3, Suit::Clubs));
+        let player = HoleCards::new(&Card::new(2, Suit::Clubs), &Card::new(13, Suit::Clubs));
         let opponent = HoleCards::new(&Card::new(7, Suit::Clubs), &Card::new(8, Suit::Clubs));
         let board = Board::from_vec(vec![
             Card::new(3, Suit::Clubs),
@@ -185,13 +185,13 @@ mod tests {
 
         debug_assert_eq!(player_rank.is_straight_flush(), true, "Player rank: {:}", player_rank);
         debug_assert_eq!(opponent_rank.is_straight_flush(), true, "Opponent rank: {:}", opponent_rank);
-        assert_eq!(player_wins(player, opponent, board), Some(true));
+        assert_eq!(player_wins(player, opponent, board), Some(false));
     }
 
     #[test]
     fn test_equal_straight_flush() {
-        let player = HoleCards::new(&Card::new(12, Suit::Clubs), &Card::new(14, Suit::Clubs));
-        let opponent = HoleCards::new(&Card::new(13, Suit::Clubs), &Card::new(2, Suit::Clubs));
+        let player = HoleCards::new(&Card::new(12, Suit::Clubs), &Card::new(13, Suit::Clubs));
+        let opponent = HoleCards::new(&Card::new(14, Suit::Clubs), &Card::new(8, Suit::Clubs));
         let board = Board::from_vec(vec![
             Card::new(2, Suit::Clubs),
             Card::new(3, Suit::Clubs),
@@ -210,7 +210,7 @@ mod tests {
 
     #[test]
     fn test_compare_quad_board() {
-        let player = HoleCards::new(&Card::new(13, Suit::Clubs), &Card::new(3, Suit::Clubs));
+        let player = HoleCards::new(&Card::new(13, Suit::Clubs), &Card::new(2, Suit::Clubs));
         let opponent = HoleCards::new(&Card::new(7, Suit::Clubs), &Card::new(8, Suit::Clubs));
         let board = Board::from_vec(vec![
             Card::new(3, Suit::Clubs),
@@ -225,7 +225,7 @@ mod tests {
 
         debug_assert_eq!(player_rank.is_four_of_a_kind(), true, "Player rank: {:}", player_rank);
         debug_assert_eq!(opponent_rank.is_four_of_a_kind(), true, "Opponent rank: {:}", opponent_rank);
-        assert_eq!(player_wins(player, opponent, board), Some(false));
+        assert_eq!(player_wins(player, opponent, board), Some(true));
     }
 
     #[test]
@@ -345,7 +345,7 @@ mod tests {
 
         debug_assert_eq!(player_rank.is_straight(), true, "Player rank: {:}", player_rank);
         debug_assert_eq!(opponent_rank.is_straight(), true, "Opponent rank: {:}", opponent_rank);
-        assert_eq!(player_wins(player, opponent, board), Some(true));
+        assert_eq!(player_wins(player, opponent, board), Some(false));
     }
 
     #[test]
@@ -365,7 +365,7 @@ mod tests {
 
         debug_assert_eq!(player_rank.is_straight(), true, "Player rank: {:}", player_rank);
         debug_assert_eq!(opponent_rank.is_straight(), true, "Opponent rank: {:}", opponent_rank);
-        assert_eq!(player_wins(player, opponent, board), Some(true));
+        assert_eq!(player_wins(player, opponent, board), None);
     }
 
     #[test]
@@ -405,7 +405,7 @@ mod tests {
 
         debug_assert_eq!(player_rank.is_three_of_a_kind(), true, "Player rank: {:}", player_rank);
         debug_assert_eq!(opponent_rank.is_three_of_a_kind(), true, "Opponent rank: {:}", opponent_rank);
-        assert_eq!(player_wins(player, opponent, board), Some(true));
+        assert_eq!(player_wins(player, opponent, board), None);
     }
 
     #[test]
@@ -470,12 +470,12 @@ mod tests {
 
     #[test]
     fn test_equal_one_pair() {
-        let player = HoleCards::new(&Card::new(7, Suit::Clubs), &Card::new(3, Suit::Clubs));
+        let player = HoleCards::new(&Card::new(7, Suit::Clubs), &Card::new(3, Suit::Spades));
         let opponent = HoleCards::new(&Card::new(7, Suit::Clubs), &Card::new(4, Suit::Spades));
         let board = Board::from_vec(vec![
             Card::new(14, Suit::Diamonds),
             Card::new(13, Suit::Hearts),
-            Card::new(12, Suit::Clubs),
+            Card::new(2, Suit::Clubs),
             Card::new(7, Suit::Clubs),
             Card::new(8, Suit::Clubs),
         ]);
@@ -485,7 +485,7 @@ mod tests {
 
         debug_assert_eq!(player_rank.is_one_pair(), true, "Player rank: {:}", player_rank);
         debug_assert_eq!(opponent_rank.is_one_pair(), true, "Opponent rank: {:}", opponent_rank);
-        assert_eq!(player_wins(player, opponent, board), Some(true));
+        assert_eq!(player_wins(player, opponent, board), None);
     }
 
     #[test]
@@ -505,7 +505,7 @@ mod tests {
 
         debug_assert_eq!(player_rank.is_high_card(), true, "Player rank: {:}", player_rank);
         debug_assert_eq!(opponent_rank.is_high_card(), true, "Opponent rank: {:}", opponent_rank);
-        assert_eq!(player_wins(player, opponent, board), Some(false));
+        assert_eq!(player_wins(player, opponent, board), Some(true));
     }
 
     #[test]
