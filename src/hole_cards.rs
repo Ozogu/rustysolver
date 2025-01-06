@@ -98,7 +98,7 @@ mod tests {
         let hole_cards2 = HoleCards::new_with_ranks(2, 3);
         assert_eq!(hole_cards1 < hole_cards2, true);
     }
-    
+
     #[test]
     fn test_cmp_pocket_pairs() {
         let hole_cards1 = HoleCards::new_with_ranks(1, 1);

@@ -2,6 +2,7 @@ use crate::card::Card;
 use crate::suit::Suit;
 use rand::seq::SliceRandom;
 use rand::rngs::StdRng;
+use std::fmt;
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct Deck {
@@ -53,5 +54,23 @@ impl Deck {
 
     pub fn remove(&mut self, card: &Card) {
         self.cards.retain(|c| c != card);
+    }
+
+    pub fn get(&self, index: usize) -> Option<Card> {
+        self.cards.get(index).cloned()
+    }
+
+    pub fn remove_index(&mut self, index: usize) {
+        self.cards.remove(index);
+    }
+}
+
+impl fmt::Display for Deck {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        for card in &self.cards {
+            write!(f, "{:}", card)?;
+        }
+
+        Ok(())
     }
 }

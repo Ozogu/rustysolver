@@ -4,8 +4,8 @@ use std::fmt;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct PlayerCards {
-    ip: HoleCards,
-    oop: HoleCards,
+    pub ip: HoleCards,
+    pub oop: HoleCards,
 }
 
 impl PlayerCards {

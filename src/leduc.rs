@@ -32,7 +32,7 @@ impl Game for Leduc {
                 Card::new(3, Suit::Diamonds),
                 Card::new(3, Suit::Clubs),
             ]
-        )   
+        )
     }
 
     fn num_streets(&self) -> u8 {

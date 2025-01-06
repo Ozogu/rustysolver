@@ -26,9 +26,9 @@ impl Pot {
                 let amount = match bet {
                     Bet::P(p) => self.bet_amount(self.total(), p),
                     Bet::C(c) => c as f64,
-                };  
+                };
                 *self.pot.get_mut(&player).unwrap() += amount;
-                    
+
             },
             Action::Raise(amount) => {
                 let to_call = self.to_call();
@@ -48,9 +48,9 @@ impl Pot {
 
     pub fn payoff(&self, player: Player, won: Option<bool>) -> f64 {
         match won {
-            Some(true) => match player {
+            Some(true) => {
                 // Win what the opponent contributed
-                player => self.pot[&player.opponent()],
+                self.pot[&player.opponent()]
             },
             Some(false) => {
                 // Lose what you contributed

@@ -13,11 +13,11 @@ pub enum Action {
 impl Action {
     pub fn to_string(&self) -> String {
         match self {
-            Action::Fold => "f".to_string(),
-            Action::Call => "c".to_string(),
-            Action::Bet(bet) => format!("b{}", bet),
-            Action::Raise(bet) => format!("r{}", bet),
-            Action::Check => "x".to_string(),
+            Action::Fold => "F".to_string(),
+            Action::Call => "C".to_string(),
+            Action::Bet(bet) => format!("B{}", bet),
+            Action::Raise(bet) => format!("R{}", bet),
+            Action::Check => "X".to_string(),
             Action::None => "-".to_string(),
         }
     }

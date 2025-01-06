@@ -35,9 +35,9 @@ impl Street {
     pub fn to_string(&self) -> String {
         match self {
             Street::Preflop => "P".to_string(),
-            Street::Flop(board) => format!("F{}", board.to_string()),
-            Street::Turn(board) => format!("T{}", board.to_string()),
-            Street::River(board) => format!("R{}", board.to_string()),
+            Street::Flop(board) => format!("f{}", board.to_string()),
+            Street::Turn(board) => format!("t{}", board.to_string()),
+            Street::River(board) => format!("r{}", board.to_string()),
             Street::None => panic!("Cannot convert None street to string"),
         }
     }

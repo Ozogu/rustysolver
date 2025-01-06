@@ -7,6 +7,9 @@ use crate::pot::Pot;
 use crate::game::Game;
 use crate::history_node::HistoryNode;
 use crate::bet::Bet;
+use crate::deal::Deal;
+use crate::player_cards::PlayerCards;
+use crate::hole_cards::HoleCards;
 
 #[derive(Clone, Debug)]
 pub struct Kuhn {}
@@ -50,6 +53,29 @@ impl Game for Kuhn {
 
     fn legal_first_actions(&self) -> Vec<Action> {
         self.legal_actions(&History::new())
+    }
+
+    fn generate_deals(&self) -> Vec<Deal> {
+        let mut deals = Vec::new();
+        let mut deck = self.deck();
+
+        for _ in 0..deck.len() {
+            let card = deck.draw().unwrap().rank;
+            let cards1 = HoleCards::new_with_rank(card);
+            let mut deck_clone = deck.clone();
+            for _ in 0..deck_clone.len() {
+                let card = deck_clone.draw().unwrap().rank;
+                let cards2 = HoleCards::new_with_rank(card);
+
+                let deal1 = Deal::new(PlayerCards::new(cards1.clone(), cards2.clone()), deck_clone.clone());
+                let deal2 = Deal::new(PlayerCards::new(cards2.clone(), cards1.clone()), deck_clone.clone());
+
+                deals.push(deal1);
+                deals.push(deal2);
+            }
+        }
+
+        deals
     }
 }
 

@@ -4,7 +4,7 @@ use rustysolver::history::History;
 
 fn main() {
     let mut cfr = CFR::new(Leduc::new());
-    let ev = cfr.train(1000);
+    let ev = cfr.train(100);
     println!("Expected value: {:.4}", ev);
     cfr.print_strategy();
 

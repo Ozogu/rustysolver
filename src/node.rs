@@ -37,13 +37,14 @@ impl Node {
     }
 
     pub fn is_terminal<G: Game>(&self, game: &G) -> bool {
-        self.history.street().to_u8() == game.num_streets() && self.history.is_terminal_action()
+        self.history.is_terminal_action() ||
+        (self.history.street().to_u8() == game.num_streets() && self.history.is_completing_action())
     }
 
     pub fn is_street_completing_action(&self) -> bool {
-        self.history.is_terminal_action()
+        self.history.is_completing_action()
     }
-    
+
     pub fn player(&self) -> Player {
         self.player
     }
@@ -93,6 +94,17 @@ impl Node {
     pub fn info_state(&self) -> InfoState {
         InfoState::new(self.player, self.player_cards(), self.history.clone())
     }
+
+    pub fn log(&self) {
+        println!("Player: {:}", self.player);
+        println!("Reach prob: {:?}", self.reach_prob);
+        println!("Pot: {:?}", self.pot);
+        println!("History: {:}", self.history);
+        println!("Player cards: {:}", self.player_cards());
+        println!("Opponent cards: {:}", self.opponent_cards());
+        println!("Deck: {:}", self.deck);
+        println!("-----------------");
+    }
 }
 
 #[cfg(test)]
@@ -128,7 +140,7 @@ mod tests {
         let next_node = node.next_action_node(&Kuhn::new(), Action::Check, 0.5);
         assert_eq!(next_node.player_reach_prob(), 1.0);
         assert_eq!(next_node.opponent_reach_prob(), 0.5);
-        
+
         let next_node = next_node.next_action_node(&Kuhn::new(), Action::Check, 0.25);
         assert_eq!(next_node.opponent_reach_prob(), 0.25);
         assert_eq!(next_node.player_reach_prob(), 0.5);
@@ -175,5 +187,16 @@ mod tests {
         assert_eq!(next_node.player, Player::OOP);
         assert_eq!(next_node.actions, Leduc::new().legal_actions(
             &History::new_from_vec(vec![HistoryNode::Street(Street::Flop(Board::new()))])));
+    }
+
+    #[test]
+    fn test_fold_is_terminal_in_2_street_game() {
+        let deal = Deal::new(
+            PlayerCards::new(HoleCards::new_with_rank(1), HoleCards::new_with_rank(2)),
+            Deck::new_empty()
+        );
+        let node = Node::new(&Leduc::new(), deal);
+        let next_node = node.next_action_node(&Leduc::new(), Action::Fold, 1.0);
+        assert_eq!(next_node.is_terminal(&Leduc::new()), true);
     }
 }

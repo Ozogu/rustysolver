@@ -47,7 +47,7 @@ impl<G: Game> CFR<G> {
             zip.pop();
             zip.pop();
             zip.push_str("]");
-            
+
             strategy.push((info_state.clone(), format!("{:}: {:}", info_state, zip)));
         }
 
@@ -69,7 +69,7 @@ impl<G: Game> CFR<G> {
             let node = Node::new(&self.game, deal);
             self.iterate_statistics(node, &mut statistics);
         }
-        
+
         statistics.finalize(&self.game);
 
         statistics
@@ -106,7 +106,7 @@ impl<G: Game> CFR<G> {
             for card in node.deck.iter() {
                 let next_street = node.history.street().next_street(card.clone());
                 let next_node = node.next_street_node(&self.game, next_street);
-                
+
                 node_util += self.cfr(next_node);
             }
 
@@ -116,20 +116,20 @@ impl<G: Game> CFR<G> {
             let strategy = self.strategy(&node);
             let mut action_util = node.zero_utils();
             let mut node_util = 0.0;
-    
+
             for i in 0..node.actions.len() {
                 let next_node = node.next_action_node(&self.game, node.actions[i].clone(), strategy[i]);
                 action_util[i] = -self.cfr(next_node);
                 node_util += strategy[i] * action_util[i];
             }
-    
+
             for i in 0..node.actions.len() {
                 let regret = action_util[i] - node_util;
                 self.regrets.get_mut(&node.info_state()).unwrap()[i] += node.opponent_reach_prob() * regret;
             }
-    
+
             node_util
-        }        
+        }
     }
 
     fn strategy(&mut self, node: &Node) -> Vec<f64> {

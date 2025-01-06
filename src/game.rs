@@ -51,24 +51,58 @@ pub trait Game {
 
     fn generate_deals(&self) -> Vec<Deal> {
         let mut deals = Vec::new();
-        let mut deck = self.deck();
+        let deck = self.deck();
 
-        for _ in 0..deck.len() {
-            let card = deck.draw().unwrap().rank;
-            let cards1 = HoleCards::new_with_rank(card);
-            let mut deck_clone = deck.clone();
-            for _ in 0..deck_clone.len() {
-                let card = deck_clone.draw().unwrap().rank;
-                let cards2 = HoleCards::new_with_rank(card);
+        for c1 in 0..deck.len() {
+            for c2 in 0..deck.len() {
+                if c1 == c2 { continue; }
+                for c3 in 0..deck.len() {
+                    if c1 == c3 || c2 == c3 { continue; }
+                    for c4 in 0..deck.len() {
+                        if c1 == c4 || c2 == c4 || c3 == c4 { continue; }
 
-                let deal1 = Deal::new(PlayerCards::new(cards1.clone(), cards2.clone()), deck_clone.clone());
-                let deal2 = Deal::new(PlayerCards::new(cards2.clone(), cards1.clone()), deck_clone.clone());
+                        let card1 = deck.get(c1).unwrap();
+                        let card2 = deck.get(c2).unwrap();
+                        let card3 = deck.get(c3).unwrap();
+                        let card4 = deck.get(c4).unwrap();
 
-                deals.push(deal1);
-                deals.push(deal2);
+                        let ip_cards = HoleCards::new(&card1, &card2);
+                        let oop_cards = HoleCards::new(&card3, &card4);
+                        let cards = PlayerCards::new(ip_cards, oop_cards);
+
+
+                        let mut card_indexes = vec![c1, c2, c3, c4];
+                        card_indexes.sort();
+
+                        let mut deck_clone = deck.clone();
+                        for card_index in card_indexes.iter().rev() {
+                            deck_clone.remove_index(*card_index);
+                        }
+
+                        let deal = Deal::new(cards.clone(), deck_clone.clone());
+                        deals.push(deal);
+                    }
+                }
             }
         }
 
         deals
+    }
+}
+
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::leduc::Leduc;
+
+    #[test]
+    fn test_generate_deals() {
+        let game = Leduc::new();
+        let deals = game.generate_deals();
+        for deal in deals {
+            assert_ne!(deal.cards.ip, deal.cards.oop);
+            assert_eq!(deal.deck.len(), 2);
+        }
     }
 }
