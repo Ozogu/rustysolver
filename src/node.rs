@@ -23,6 +23,7 @@ pub struct Node {
     pub deck: Deck,
     pub util: f64,
     pub action_utils: Vec<f64>,
+    pub action_probs: Vec<f64>,
 }
 
 impl Node {
@@ -38,6 +39,7 @@ impl Node {
             deck: deal.deck,
             util: 0.0,
             action_utils: vec![0.0; actions.len()],
+            action_probs: vec![0.0; actions.len()],
         }
     }
 
@@ -83,6 +85,7 @@ impl Node {
         next_node.pot.update(self.player, action);
         next_node.util = 0.0;
         next_node.action_utils = self.zero_utils();
+        next_node.action_probs = self.zero_utils();
 
         next_node
     }
@@ -94,6 +97,7 @@ impl Node {
         next_node.actions = game.legal_actions(&next_node.history);
         next_node.util = 0.0;
         next_node.action_utils = self.zero_utils();
+        next_node.action_probs = self.zero_utils();
 
         next_node
     }
@@ -168,6 +172,7 @@ mod tests {
         assert_eq!(next_node.pot.contributions(), HashMap::from([(Player::IP, 1.0), (Player::OOP, 2.0)]));
         assert_eq!(next_node.util, 0.0);
         assert_eq!(next_node.action_utils, vec![0.0; 2]);
+        assert_eq!(next_node.action_probs, vec![0.0; 2]);
     }
 
     #[test]
@@ -197,7 +202,8 @@ mod tests {
         assert_eq!(next_node.actions, Leduc::new().legal_actions(
             &History::new_from_vec(vec![HistoryNode::Street(Street::Flop(Board::new()))])));
         assert_eq!(next_node.util, 0.0);
-        assert_eq!(next_node.action_utils, vec![0.0; 2]);
+        assert_eq!(next_node.action_utils, vec![0.0; 3]);
+        assert_eq!(next_node.action_probs, vec![0.0; 3]);
     }
 
     #[test]
