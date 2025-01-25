@@ -7,7 +7,7 @@ use crate::tree_walker::TreeWalker;
 pub struct GameTree<G: Game + Clone> {
     pub regrets: HashMap<InfoState, Vec<f64>>,
     pub strategy_sum: HashMap<InfoState, Vec<f64>>,
-    game: G,
+    pub game: G,
 }
 
 impl<G: Game + Clone> GameTree<G> {

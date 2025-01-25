@@ -32,7 +32,11 @@ impl<'a, G: Game + Clone> TreePrintVisitor<'a, G> {
 }
 
 impl<'a, G: Game + Clone> Visitor for TreePrintVisitor<'a, G> {
-    fn visit_node(&mut self, node: &Node) {
+    fn visit_node(&mut self, _: &Node) {}
+    fn visit_terminal_node(&mut self, _: &Node) {}
+    fn visit_street_completing_node(&mut self, _: &Node) {}
+
+    fn visit_action_node(&mut self, node: &Node) {
         let actions = &node.actions;
         let strategy = self.tree.average_strategy(&node.info_state());
 
@@ -45,10 +49,6 @@ impl<'a, G: Game + Clone> Visitor for TreePrintVisitor<'a, G> {
         line.pop();
         line.push_str("]");
 
-        self.lines.push((node.info_state().clone(), line));
+        self.lines.push((node.info_state().clone(), format!("{:}: {:}", node.info_state(), line)));
     }
-
-    fn visit_terminal_node(&mut self, _: &Node) {}
-    fn visit_street_completing_node(&mut self, _: &Node) {}
-    fn visit_action_node(&mut self, _: &Node) {}
 }
