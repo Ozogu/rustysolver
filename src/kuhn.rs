@@ -136,7 +136,7 @@ mod tests {
         let node = Node::new(&kuhn, deal);
         let next_node = node.next_action_node(&kuhn, Action::Check, 1.0);
         let next_node = next_node.next_action_node(&kuhn, Action::Check, 1.0);
-        assert_eq!((next_node.player(), kuhn.player_wins(&next_node)), (Player::OOP, Some(true)));
+        assert_eq!((next_node.player, kuhn.player_wins(&next_node)), (Player::OOP, Some(true)));
     }
 
     #[test]
@@ -150,7 +150,7 @@ mod tests {
         let next_node = node.next_action_node(&kuhn, Action::Check, 1.0);
         let next_node = next_node.next_action_node(&kuhn, Action::Bet(Bet::P(50)), 1.0);
         let next_node = next_node.next_action_node(&kuhn, Action::Fold, 1.0);
-        assert_eq!((next_node.player(), kuhn.player_wins(&next_node)), (Player::IP, Some(true)));
+        assert_eq!((next_node.player, kuhn.player_wins(&next_node)), (Player::IP, Some(true)));
     }
 
     #[test]
@@ -164,7 +164,7 @@ mod tests {
         let next_node = node.next_action_node(&kuhn, Action::Check, 1.0);
         let next_node = next_node.next_action_node(&kuhn, Action::Bet(Bet::P(50)), 1.0);
         let next_node = next_node.next_action_node(&kuhn, Action::Call, 1.0);
-        assert_eq!((next_node.player(), kuhn.player_wins(&next_node)), (Player::IP, Some(false)));
+        assert_eq!((next_node.player, kuhn.player_wins(&next_node)), (Player::IP, Some(false)));
     }
 
     #[test]
@@ -177,7 +177,7 @@ mod tests {
         let node = Node::new(&kuhn, deal);
         let next_node = node.next_action_node(&kuhn, Action::Bet(Bet::P(50)), 1.0);
         let next_node = next_node.next_action_node(&kuhn, Action::Fold, 1.0);
-        assert_eq!((next_node.player(), kuhn.player_wins(&next_node)), (Player::OOP, Some(true)));
+        assert_eq!((next_node.player, kuhn.player_wins(&next_node)), (Player::OOP, Some(true)));
     }
 
     #[test]
@@ -190,6 +190,6 @@ mod tests {
         let node = Node::new(&kuhn, deal);
         let next_node = node.next_action_node(&kuhn, Action::Bet(Bet::P(50)), 1.0);
         let next_node = next_node.next_action_node(&kuhn, Action::Call, 1.0);
-        assert_eq!((next_node.player(), kuhn.player_wins(&next_node)), (Player::OOP, Some(true)));
+        assert_eq!((next_node.player, kuhn.player_wins(&next_node)), (Player::OOP, Some(true)));
     }
 }

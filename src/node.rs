@@ -45,16 +45,12 @@ impl Node {
         self.history.is_completing_action()
     }
 
-    pub fn player(&self) -> Player {
-        self.player
-    }
-
     pub fn player_reach_prob(&self) -> f64 {
-        self.reach_prob[&self.player()]
+        self.reach_prob[&self.player]
     }
 
     pub fn opponent_reach_prob(&self) -> f64 {
-        self.reach_prob[&self.player().opponent()]
+        self.reach_prob[&self.player.opponent()]
     }
 
     pub fn player_cards(&self) -> HoleCards {
@@ -77,9 +73,9 @@ impl Node {
         let mut next_node: Node = self.clone();
         next_node.history.push_action(action.clone());
         next_node.player = self.player.opponent();
-        next_node.reach_prob.insert(self.player(), self.player_reach_prob() * action_prob);
+        next_node.reach_prob.insert(self.player, self.player_reach_prob() * action_prob);
         next_node.actions = game.legal_actions(&next_node.history);
-        next_node.pot.update(self.player(), action);
+        next_node.pot.update(self.player, action);
         next_node
     }
 
