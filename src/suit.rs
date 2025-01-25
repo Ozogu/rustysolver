@@ -1,9 +1,9 @@
 use std::fmt;
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Hash, Ord)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum Suit {
-    Spades,
     Hearts,
+    Spades,
     Diamonds,
     Clubs,
     Suited,
@@ -17,8 +17,8 @@ impl Suit {
 
     pub fn to_string(&self) -> String {
         match self {
-            Suit::Spades => "♠".to_string(),
             Suit::Hearts => "♥".to_string(),
+            Suit::Spades => "♠".to_string(),
             Suit::Diamonds => "♦".to_string(),
             Suit::Clubs => "♣".to_string(),
             Suit::Suited => "u".to_string(),
@@ -28,8 +28,8 @@ impl Suit {
 
     pub fn from_str(s: &str) -> Self {
         match s {
-            "♠" => Suit::Spades,
             "♥" => Suit::Hearts,
+            "♠" => Suit::Spades,
             "♦" => Suit::Diamonds,
             "♣" => Suit::Clubs,
             "s" => Suit::Spades,
@@ -44,11 +44,12 @@ impl Suit {
 
     pub fn to_usize(&self) -> usize {
         match self {
-            Suit::Spades => 0,
-            Suit::Hearts => 1,
+            Suit::Hearts => 0,
+            Suit::Spades => 1,
             Suit::Diamonds => 2,
             Suit::Clubs => 3,
-            _ => panic!("Invalid suit: {:?}", self),
+            Suit::Suited => 4,
+            Suit::Offsuit => 5,
         }
     }
 
@@ -58,8 +59,22 @@ impl Suit {
             1 => Suit::Hearts,
             2 => Suit::Diamonds,
             3 => Suit::Clubs,
+            4 => Suit::Suited,
+            5 => Suit::Offsuit,
             _ => panic!("Invalid suit: {}", s),
         }
+    }
+}
+
+impl PartialOrd for Suit {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        Some(other.to_usize().cmp(&self.to_usize()))
+    }
+}
+
+impl Ord for Suit {
+    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+        self.partial_cmp(other).unwrap()
     }
 }
 

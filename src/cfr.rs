@@ -99,7 +99,9 @@ impl<G: Game> CFR<G> {
     }
 
     fn cfr(&mut self, node: Node) -> f64 {
+        // Handle terminal node
         if node.is_terminal(&self.game) { return self.payoff(&node); }
+        // Handle street completing node
         else if node.is_street_completing_action() {
             let mut node_util = 0.0;
 
@@ -111,6 +113,7 @@ impl<G: Game> CFR<G> {
             }
 
             return node_util / node.deck.len() as f64;
+        // Handle non-terminal node
         } else {
             self.create_node_entry(&node);
             let strategy = self.strategy(&node);
@@ -155,7 +158,8 @@ impl<G: Game> CFR<G> {
     }
 
     fn average_strategy(&self, info_state: &InfoState) -> Option<Vec<f64>> {
-        let strategy_sum = self.strategy_sum.get(info_state).unwrap();
+        let strategy_sum = self.strategy_sum.get(info_state)
+            .expect(&format!("Info state not found: {}", info_state));
         let mut avg_strategy = vec![0.0; strategy_sum.len()];
         let mut normalizing_sum = 0.0;
 
