@@ -57,17 +57,17 @@ impl TreeWalker {
                 }
             }
         } else {
-            let action_probs = visitor.get_action_probs(&node);
+            node.action_probs = visitor.get_action_probs(&node);
 
             // TODO: implement walk methods
             for i in 0..node.actions.len() {
                 let next_node = node.next_action_node(
                     game,
                     node.actions[i].clone(),
-                    action_probs[i]);
+                    node.action_probs[i]);
 
                 node.action_utils[i] = -Self::iterate_tree(game, next_node, rng, method, visitor);
-                node.util += action_probs[i] * node.action_utils[i];
+                node.util += node.action_probs[i] * node.action_utils[i];
             }
 
             visitor.visit_action_node(&node);

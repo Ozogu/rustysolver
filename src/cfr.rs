@@ -13,8 +13,6 @@ use crate::tree_walker::TreeWalker;
 
 pub struct CFR<G: Game + Clone> {
     game: G,
-    regrets: HashMap<InfoState, Vec<f64>>,
-    strategy_sum: HashMap<InfoState, Vec<f64>>,
     rng: StdRng,
     tree: GameTree<G>,
 }
@@ -27,8 +25,6 @@ impl<G: Game + Clone> CFR<G> {
         CFR {
             game,
             rng: StdRng::seed_from_u64(0),
-            regrets: HashMap::new(),
-            strategy_sum: HashMap::new(),
             tree,
         }
     }
@@ -62,7 +58,7 @@ impl<G: Game + Clone> CFR<G> {
 
     pub fn print_strategy(&mut self) {
         let mut strategy = Vec::new();
-        for (info_state, _) in &self.regrets {
+        for (info_state, _) in &self.tree.regrets {
             let actions = self.game.legal_actions(&info_state.history);
             let avg_strategy = self.average_strategy(info_state).unwrap();
 
@@ -138,7 +134,7 @@ impl<G: Game + Clone> CFR<G> {
     }
 
     fn average_strategy(&self, info_state: &InfoState) -> Option<Vec<f64>> {
-        let strategy_sum = self.strategy_sum.get(info_state)
+        let strategy_sum = self.tree.strategy_sum.get(info_state)
             .expect(&format!("Info state not found: {}", info_state));
         let mut avg_strategy = vec![0.0; strategy_sum.len()];
         let mut normalizing_sum = 0.0;

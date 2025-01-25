@@ -30,12 +30,14 @@ impl<'a> Visitor for CfrVisitor<'a> {
 
     fn visit_action_node(&mut self, node: &Node) {
         for i in 0..node.action_probs.len() {
-            self.strategy_sum.get_mut(&node.info_state()).unwrap()[i] += node.player_reach_prob() * node.action_probs[i];
+            self.strategy_sum.get_mut(&node.info_state()).unwrap()[i] +=
+                node.player_reach_prob() * node.action_probs[i];
         }
 
         for i in 0..node.actions.len() {
             let regret = node.action_utils[i] - node.util;
-            self.regrets.get_mut(&node.info_state()).unwrap()[i] += node.opponent_reach_prob() * regret;
+            self.regrets.get_mut(&node.info_state()).unwrap()[i] +=
+                node.opponent_reach_prob() * regret;
         }
     }
 
