@@ -81,6 +81,17 @@ impl<G: Game> CFR<G> {
             statistics.update_node(&node, payoff, node.zero_utils());
 
             return payoff;
+        } else if node.is_street_completing_action() {
+            let mut node_util = 0.0;
+
+            for card in node.deck.iter() {
+                let next_street = node.history.street().next_street(card.clone());
+                let next_node = node.next_street_node(&self.game, next_street);
+
+                node_util += self.iterate_statistics(next_node, statistics);
+            }
+
+            return node_util / node.deck.len() as f64;
         }
 
         let strategy = self.average_strategy(&node.info_state()).unwrap();
