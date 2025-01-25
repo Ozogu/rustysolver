@@ -32,6 +32,27 @@ impl<G: Game + Clone> GameTree<G> {
             println!("{}", info_state);
         }
     }
+
+    pub fn average_strategy(&self, info_state: &InfoState) -> Vec<f64> {
+        let strategy_sum = self.strategy_sum.get(info_state)
+            .expect(&format!("Info state not found: {}", info_state));
+        let mut avg_strategy = vec![0.0; strategy_sum.len()];
+        let mut normalizing_sum = 0.0;
+
+        for value in strategy_sum.iter() {
+            normalizing_sum += *value;
+        }
+
+        for i in 0..avg_strategy.len() {
+            if normalizing_sum > 0.0 {
+                avg_strategy[i] = strategy_sum[i] / normalizing_sum;
+            } else {
+                avg_strategy[i] = 1.0 / avg_strategy.len() as f64;
+            }
+        }
+
+        avg_strategy
+    }
 }
 
 #[cfg(test)]

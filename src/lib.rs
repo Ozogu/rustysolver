@@ -26,3 +26,4 @@ pub mod visitor;
 pub mod build_visitor;
 pub mod cfr_visitor;
 pub mod tree_walker;
+pub mod tree_print_visitor;
