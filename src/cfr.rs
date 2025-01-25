@@ -4,6 +4,7 @@ use rand::rngs::StdRng;
 use crate::info_state::InfoState;
 use crate::game::Game;
 use crate::node::Node;
+use crate::player::Player;
 use crate::statistics::Statistics;
 use crate::history::History;
 
@@ -101,30 +102,31 @@ impl<G: Game> CFR<G> {
             return payoff;
         } else if node.is_street_completing_action() {
             let mut node_util = 0.0;
+            let sign = if node.player == Player::IP { 1.0 } else { -1.0 };
 
             for card in node.deck.iter() {
                 let next_street = node.history.street().next_street(card.clone());
                 let next_node = node.next_street_node(&self.game, next_street);
 
-                node_util += self.iterate_statistics(next_node, statistics);
+                node_util += sign * self.iterate_statistics(next_node, statistics);
             }
 
             return node_util / node.deck.len() as f64;
+        } else {
+            let strategy = self.average_strategy(&node.info_state()).unwrap();
+            let mut action_utils = node.zero_utils();
+            let mut node_util = 0.0;
+
+            for i in 0..node.actions.len() {
+                let next_node = node.next_action_node(&self.game, node.actions[i].clone(), strategy[i]);
+                action_utils[i] = -self.iterate_statistics(next_node, statistics);
+                node_util += strategy[i] * action_utils[i];
+            }
+
+            statistics.update_node(&node, node_util, action_utils);
+
+            node_util
         }
-
-        let strategy = self.average_strategy(&node.info_state()).unwrap();
-        let mut action_utils = node.zero_utils();
-        let mut node_util = 0.0;
-
-        for i in 0..node.actions.len() {
-            let next_node = node.next_action_node(&self.game, node.actions[i].clone(), strategy[i]);
-            action_utils[i] = -self.iterate_statistics(next_node, statistics);
-            node_util += strategy[i] * action_utils[i];
-        }
-
-        statistics.update_node(&node, node_util, action_utils);
-
-        node_util
     }
 
     fn cfr(&mut self, node: Node) -> f64 {
@@ -134,13 +136,17 @@ impl<G: Game> CFR<G> {
         }
         // Handle street completing node
         else if node.is_street_completing_action() {
+            // When OOP is the one completing the street,
+            // node util from next action is positive.
+            let sign = if node.player == Player::IP { 1.0 } else { -1.0 };
+
             let mut node_util = 0.0;
 
             for card in node.deck.iter() {
                 let next_street = node.history.street().next_street(card.clone());
                 let next_node = node.next_street_node(&self.game, next_street);
 
-                node_util += self.cfr(next_node);
+                node_util += sign * self.cfr(next_node);
             }
 
             return node_util / node.deck.len() as f64;
@@ -217,7 +223,7 @@ impl<G: Game> CFR<G> {
 
     fn payoff(&self, node: &Node) -> f64 {
         let won = self.game.player_wins(&node);
-        let win_amount = node.pot.payoff(node.player(), won);
+        let win_amount = node.pot.payoff(node.player, won);
 
         return win_amount;
     }
