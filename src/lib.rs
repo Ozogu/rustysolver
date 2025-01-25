@@ -23,3 +23,4 @@ pub mod bet;
 pub mod hand_rank;
 pub mod card_array;
 pub mod visitor;
+pub mod build_visitor;

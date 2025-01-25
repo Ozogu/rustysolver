@@ -3,6 +3,7 @@ use crate::info_state::InfoState;
 use crate::game::Game;
 use crate::node::Node;
 use crate::visitor::Visitor;
+use crate::build_visitor::BuilderVisitor;
 use rand::rngs::StdRng;
 use rand::SeedableRng;
 
@@ -89,43 +90,9 @@ impl<G: Game> GameTree<G> {
     }
 }
 
-struct BuilderVisitor {
-    pub regrets: HashMap<InfoState, Vec<f64>>,
-    pub strategy_sum: HashMap<InfoState, Vec<f64>>,
-}
-
 enum WalkMethod {
     MonteCarlo,
     Full,
-}
-
-impl BuilderVisitor {
-    fn new() -> Self {
-        BuilderVisitor {
-            regrets: HashMap::new(),
-            strategy_sum: HashMap::new(),
-        }
-    }
-
-    fn add_node(&mut self, node: &Node) {
-        let info_state = node.info_state().clone();
-        self.regrets.entry(info_state.clone()).or_insert(node.zero_utils());
-        self.strategy_sum.entry(info_state).or_insert(node.zero_utils());
-    }
-}
-
-impl Visitor for BuilderVisitor {
-    fn visit_terminal_node(&mut self, node: &Node) {
-        return;
-    }
-
-    fn visit_street_completing_node(&mut self, node: &Node) {
-        self.add_node(node);
-    }
-
-    fn visit_action_node(&mut self, node: &Node) {
-        self.add_node(node);
-    }
 }
 
 #[cfg(test)]
