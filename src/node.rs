@@ -21,18 +21,23 @@ pub struct Node {
     pub player: Player,
     pub cards: PlayerCards,
     pub deck: Deck,
+    pub util: f64,
+    pub action_utils: Vec<f64>,
 }
 
 impl Node {
     pub fn new<G: Game>(game: &G, deal: Deal) -> Node {
+        let actions = game.legal_first_actions();
         Node {
-            actions: game.legal_first_actions(),
+            actions: actions.clone(),
             reach_prob: HashMap::from([(Player::IP, 1.0), (Player::OOP, 1.0)]),
             pot: game.initial_pot(),
             history: History::new(),
             player: Player::OOP,
             cards: deal.cards,
             deck: deal.deck,
+            util: 0.0,
+            action_utils: vec![0.0; actions.len()],
         }
     }
 
@@ -76,6 +81,9 @@ impl Node {
         next_node.reach_prob.insert(self.player, self.player_reach_prob() * action_prob);
         next_node.actions = game.legal_actions(&next_node.history);
         next_node.pot.update(self.player, action);
+        next_node.util = 0.0;
+        next_node.action_utils = self.zero_utils();
+
         next_node
     }
 
@@ -84,6 +92,9 @@ impl Node {
         next_node.history.push_street(next_street);
         next_node.player = Player::OOP;
         next_node.actions = game.legal_actions(&next_node.history);
+        next_node.util = 0.0;
+        next_node.action_utils = self.zero_utils();
+
         next_node
     }
 
@@ -155,6 +166,8 @@ mod tests {
         assert_eq!(next_node.actions, Kuhn::new().legal_actions(&History::new_from_vec(vec![HistoryNode::Action(Action::Bet(Bet::P(50)))])));
         assert_eq!(next_node.pot.total(), node.pot.total() + 1.0);
         assert_eq!(next_node.pot.contributions(), HashMap::from([(Player::IP, 1.0), (Player::OOP, 2.0)]));
+        assert_eq!(next_node.util, 0.0);
+        assert_eq!(next_node.action_utils, vec![0.0; 2]);
     }
 
     #[test]
@@ -183,6 +196,8 @@ mod tests {
         assert_eq!(next_node.player, Player::OOP);
         assert_eq!(next_node.actions, Leduc::new().legal_actions(
             &History::new_from_vec(vec![HistoryNode::Street(Street::Flop(Board::new()))])));
+        assert_eq!(next_node.util, 0.0);
+        assert_eq!(next_node.action_utils, vec![0.0; 2]);
     }
 
     #[test]
