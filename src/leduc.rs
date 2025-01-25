@@ -1,12 +1,16 @@
 use crate::deck::Deck;
 use crate::game::Game;
 use crate::history::History;
+use crate::hole_cards::HoleCards;
 use crate::suit::Suit;
 use crate::card::Card;
 use crate::pot::Pot;
 use crate::action::Action;
 use crate::history_node::HistoryNode;
 use crate::bet::Bet;
+use crate::deal::Deal;
+use crate::player_cards::PlayerCards;
+use rand::rngs::StdRng;
 
 #[derive(Clone, Debug)]
 pub struct Leduc {}
@@ -26,11 +30,11 @@ impl Game for Leduc {
         Deck::new_from_cards(
             vec![
                 Card::new(1, Suit::Diamonds),
-                Card::new(1, Suit::Clubs),
+                Card::new(1, Suit::Diamonds),
                 Card::new(2, Suit::Diamonds),
-                Card::new(2, Suit::Clubs),
+                Card::new(2, Suit::Diamonds),
                 Card::new(3, Suit::Diamonds),
-                Card::new(3, Suit::Clubs),
+                Card::new(3, Suit::Diamonds),
             ]
         )
     }
@@ -62,5 +66,19 @@ impl Game for Leduc {
 
     fn legal_first_actions(&self) -> Vec<Action> {
         self.legal_actions(&History::new())
+    }
+
+    fn deal(&self, rng: &mut StdRng) -> Deal {
+        let mut deck = self.shuffled_cards(rng);
+        let card1 = deck.draw().unwrap();
+        let card2 = deck.draw().unwrap();
+        let card3 = deck.draw().unwrap();
+        let card4 = deck.draw().unwrap();
+
+        let ip_cards = HoleCards::new(&card1, &card2);
+        let oop_cards = HoleCards::new(&card3, &card4);
+        let cards = PlayerCards::new(ip_cards, oop_cards);
+
+        Deal::new(cards, deck)
     }
 }

@@ -10,6 +10,7 @@ use crate::bet::Bet;
 use crate::deal::Deal;
 use crate::player_cards::PlayerCards;
 use crate::hole_cards::HoleCards;
+use rand::rngs::StdRng;
 
 #[derive(Clone, Debug)]
 pub struct Kuhn {}
@@ -76,6 +77,18 @@ impl Game for Kuhn {
         }
 
         deals
+    }
+
+    fn deal(&self, rng: &mut StdRng) -> Deal {
+        let mut deck = self.shuffled_cards(rng);
+        let card1 = deck.draw().unwrap();
+        let card2 = deck.draw().unwrap();
+
+        let ip_cards = HoleCards::new_with_rank(card1.rank);
+        let oop_cards = HoleCards::new_with_rank(card2.rank);
+        let cards = PlayerCards::new(ip_cards, oop_cards);
+
+        Deal::new(cards, deck)
     }
 }
 

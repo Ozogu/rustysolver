@@ -14,6 +14,7 @@ pub trait Game {
     fn deck(&self) -> Deck;
     fn legal_actions(&self, history: &History) -> Vec<Action>;
     fn legal_first_actions(&self) -> Vec<Action>;
+    fn deal(&self, rng: &mut StdRng) -> Deal;
 
     fn num_streets(&self) -> u8;
     fn num_hole_cards(&self) -> u8;
@@ -25,17 +26,6 @@ pub trait Game {
         cards
     }
 
-    fn deal(&self, rng: &mut StdRng) -> Deal {
-        let mut deck = self.shuffled_cards(rng);
-        let card1 = deck.draw().unwrap();
-        let card2 = deck.draw().unwrap();
-
-        let ip_cards = HoleCards::new_with_rank(card1.rank);
-        let oop_cards = HoleCards::new_with_rank(card2.rank);
-        let cards = PlayerCards::new(ip_cards, oop_cards);
-
-        Deal::new(cards, deck)
-    }
 
     fn player_wins(&self, node: &Node) -> Option<bool> {
         let last = node.history.last().unwrap().action();
@@ -87,22 +77,5 @@ pub trait Game {
         }
 
         deals
-    }
-}
-
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::leduc::Leduc;
-
-    #[test]
-    fn test_generate_deals() {
-        let game = Leduc::new();
-        let deals = game.generate_deals();
-        for deal in deals {
-            assert_ne!(deal.cards.ip, deal.cards.oop);
-            assert_eq!(deal.deck.len(), 2);
-        }
     }
 }
