@@ -28,6 +28,8 @@ impl TreeWalker {
     }
 
     fn iterate_tree<G: Game, V: Visitor>(game: &G, mut node: Node, rng: &mut StdRng, method: &WalkMethod, visitor: &mut V) -> f64 {
+        visitor.visit_node(&node);
+
         if node.is_terminal(game) {
             visitor.visit_terminal_node(&node);
 

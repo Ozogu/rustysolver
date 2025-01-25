@@ -20,13 +20,9 @@ impl<'a> CfrVisitor<'a> {
 }
 
 impl<'a> Visitor for CfrVisitor<'a> {
-    fn visit_terminal_node(&mut self, _: &Node) {
-        return;
-    }
-
-    fn visit_street_completing_node(&mut self, _: &Node) {
-        return;
-    }
+    fn visit_node(&mut self, _: &Node) {}
+    fn visit_terminal_node(&mut self, _: &Node) {}
+    fn visit_street_completing_node(&mut self, _: &Node) {}
 
     fn visit_action_node(&mut self, node: &Node) {
         for i in 0..node.action_probs.len() {

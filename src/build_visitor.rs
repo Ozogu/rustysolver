@@ -24,9 +24,8 @@ impl BuilderVisitor {
 }
 
 impl Visitor for BuilderVisitor {
-    fn visit_terminal_node(&mut self, node: &Node) {
-        return;
-    }
+    fn visit_node(&mut self, _: &Node) {}
+    fn visit_terminal_node(&mut self, _: &Node) {}
 
     fn visit_street_completing_node(&mut self, node: &Node) {
         self.add_node(node);
