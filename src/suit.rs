@@ -6,6 +6,8 @@ pub enum Suit {
     Hearts,
     Diamonds,
     Clubs,
+    Suited,
+    Offsuit,
 }
 
 impl Suit {
@@ -19,6 +21,8 @@ impl Suit {
             Suit::Hearts => "♥".to_string(),
             Suit::Diamonds => "♦".to_string(),
             Suit::Clubs => "♣".to_string(),
+            Suit::Suited => "u".to_string(),
+            Suit::Offsuit => "o".to_string(),
         }
     }
 
@@ -32,6 +36,8 @@ impl Suit {
             "h" => Suit::Hearts,
             "d" => Suit::Diamonds,
             "c" => Suit::Clubs,
+            "u" => Suit::Suited,
+            "o" => Suit::Offsuit,
             _ => panic!("Invalid suit: {}", s),
         }
     }
@@ -42,6 +48,7 @@ impl Suit {
             Suit::Hearts => 1,
             Suit::Diamonds => 2,
             Suit::Clubs => 3,
+            _ => panic!("Invalid suit: {:?}", self),
         }
     }
 
