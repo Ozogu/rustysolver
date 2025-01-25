@@ -7,29 +7,37 @@ use crate::node::Node;
 use crate::player::Player;
 use crate::statistics::Statistics;
 use crate::history::History;
+use crate::cfr_visitor::CfrVisitor;
+use crate::game_tree::GameTree;
+use crate::tree_walker::TreeWalker;
 
-pub struct CFR<G: Game> {
+pub struct CFR<G: Game + Clone> {
     game: G,
     regrets: HashMap<InfoState, Vec<f64>>,
     strategy_sum: HashMap<InfoState, Vec<f64>>,
     rng: StdRng,
+    tree: GameTree<G>,
 }
 
-impl<G: Game> CFR<G> {
+impl<G: Game + Clone> CFR<G> {
     pub fn new(game: G) -> Self {
+        let mut tree = GameTree::new(game.clone());
+        tree.build();
+
         CFR {
             game,
+            rng: StdRng::seed_from_u64(0),
             regrets: HashMap::new(),
             strategy_sum: HashMap::new(),
-            rng: StdRng::seed_from_u64(0),
+            tree,
         }
     }
 
     pub fn train_for_iters(&mut self, iterations: usize) -> f64 {
         let mut ev = 0.0;
+        let mut visitor = CfrVisitor::new(&mut self.tree.regrets, &mut self.tree.strategy_sum);
         for _ in 0..iterations {
-            let deal = self.game.deal(&mut self.rng);
-            ev += self.cfr(Node::new(&self.game, deal));
+            ev +=  TreeWalker::monte_carlo_iterate(&self.game, &mut self.rng, &mut visitor);
         }
 
         return ev / iterations as f64;
@@ -129,71 +137,6 @@ impl<G: Game> CFR<G> {
         }
     }
 
-    fn cfr(&mut self, node: Node) -> f64 {
-        // Handle terminal node
-        if node.is_terminal(&self.game) {
-            return self.payoff(&node);
-        }
-        // Handle street completing node
-        else if node.is_street_completing_action() {
-            // When OOP is the one completing the street,
-            // node util from next action is positive.
-            let sign = if node.player == Player::IP { 1.0 } else { -1.0 };
-
-            let mut node_util = 0.0;
-
-            for card in node.deck.iter() {
-                let next_street = node.history.street().next_street(card.clone());
-                let next_node = node.next_street_node(&self.game, next_street);
-
-                node_util += sign * self.cfr(next_node);
-            }
-
-            return node_util / node.deck.len() as f64;
-        // Handle non-terminal node
-        } else {
-            self.create_node_entry(&node);
-            let strategy = self.strategy(&node);
-            let mut action_util = node.zero_utils();
-            let mut node_util = 0.0;
-
-            for i in 0..node.actions.len() {
-                let next_node = node.next_action_node(&self.game, node.actions[i].clone(), strategy[i]);
-                action_util[i] = -self.cfr(next_node);
-                node_util += strategy[i] * action_util[i];
-            }
-
-            for i in 0..node.actions.len() {
-                let regret = action_util[i] - node_util;
-                self.regrets.get_mut(&node.info_state()).unwrap()[i] += node.opponent_reach_prob() * regret;
-            }
-
-            node_util
-        }
-    }
-
-    fn strategy(&mut self, node: &Node) -> Vec<f64> {
-        let regrets = self.regrets.get(&node.info_state()).unwrap();
-        let mut strategy: Vec<f64> = node.zero_utils();
-        let mut normalizing_sum = 0.0;
-
-        for (i, regret) in regrets.iter().enumerate() {
-            strategy[i] = if *regret > 0.0 { *regret } else { 0.0 };
-            normalizing_sum += strategy[i];
-        }
-
-        for i in 0..strategy.len() {
-            if normalizing_sum > 0.0 {
-                strategy[i] /= normalizing_sum;
-            } else {
-                strategy[i] = 1.0 / strategy.len() as f64;
-            }
-            self.strategy_sum.get_mut(&node.info_state()).unwrap()[i] += node.player_reach_prob() * strategy[i];
-        }
-
-        strategy
-    }
-
     fn average_strategy(&self, info_state: &InfoState) -> Option<Vec<f64>> {
         let strategy_sum = self.strategy_sum.get(info_state)
             .expect(&format!("Info state not found: {}", info_state));
@@ -215,11 +158,6 @@ impl<G: Game> CFR<G> {
         Some(avg_strategy)
     }
 
-    fn create_node_entry(&mut self, node: &Node) {
-        let info_state = &node.info_state();
-        self.regrets.entry(info_state.clone()).or_insert(node.zero_utils());
-        self.strategy_sum.entry(info_state.clone()).or_insert(node.zero_utils());
-    }
 
     fn payoff(&self, node: &Node) -> f64 {
         let won = self.game.player_wins(&node);
