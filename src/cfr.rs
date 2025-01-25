@@ -5,6 +5,7 @@ use crate::info_state::InfoState;
 use crate::game::Game;
 use crate::node::Node;
 use crate::statistics::Statistics;
+use crate::history::History;
 
 pub struct CFR<G: Game> {
     game: G,
@@ -23,7 +24,7 @@ impl<G: Game> CFR<G> {
         }
     }
 
-    pub fn train(&mut self, iterations: usize) -> f64 {
+    pub fn train_for_iters(&mut self, iterations: usize) -> f64 {
         let mut ev = 0.0;
         for _ in 0..iterations {
             let deal = self.game.deal(&mut self.rng);
@@ -31,6 +32,23 @@ impl<G: Game> CFR<G> {
         }
 
         return ev / iterations as f64;
+    }
+
+    pub fn train_to_exploitability(&mut self, threshold: f64) -> f64 {
+        let mut ev = 0.0;
+        let mut exploitability = f64::INFINITY;
+        let iteration_size = 200;
+        let mut total_iterations = 0;
+
+        while exploitability > threshold {
+            ev = self.train_for_iters(iteration_size);
+            let statistics = self.build_statistics();
+            exploitability = statistics.node_exploitability(&History::new());
+            total_iterations += iteration_size;
+            println!("Total iterations: {}, exploitability: {:.2?} %", total_iterations, exploitability);
+        }
+
+        return ev;
     }
 
     pub fn print_strategy(&mut self) {
@@ -111,7 +129,9 @@ impl<G: Game> CFR<G> {
 
     fn cfr(&mut self, node: Node) -> f64 {
         // Handle terminal node
-        if node.is_terminal(&self.game) { return self.payoff(&node); }
+        if node.is_terminal(&self.game) {
+            return self.payoff(&node);
+        }
         // Handle street completing node
         else if node.is_street_completing_action() {
             let mut node_util = 0.0;

@@ -18,11 +18,15 @@ impl InfoState {
             history,
         }
     }
+
+    pub fn to_string(&self) -> String {
+        format!("{:}{:}{:}", self.player, self.hole_cards, self.history)
+    }
 }
 
 impl fmt::Display for InfoState {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{:}{:}{:}", self.player, self.hole_cards, self.history)
+        write!(f, "{:}", self.to_string())
     }
 }
 
