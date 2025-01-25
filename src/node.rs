@@ -84,8 +84,8 @@ impl Node {
         next_node.actions = game.legal_actions(&next_node.history);
         next_node.pot.update(self.player, action);
         next_node.util = 0.0;
-        next_node.action_utils = self.zero_utils();
-        next_node.action_probs = self.zero_utils();
+        next_node.action_utils = next_node.zero_utils();
+        next_node.action_probs = next_node.zero_utils();
 
         next_node
     }
@@ -96,8 +96,8 @@ impl Node {
         next_node.player = Player::OOP;
         next_node.actions = game.legal_actions(&next_node.history);
         next_node.util = 0.0;
-        next_node.action_utils = self.zero_utils();
-        next_node.action_probs = self.zero_utils();
+        next_node.action_utils = next_node.zero_utils();
+        next_node.action_probs = next_node.zero_utils();
 
         next_node
     }
@@ -109,11 +109,15 @@ impl Node {
     pub fn log(&self) {
         println!("Player: {:}", self.player);
         println!("Reach prob: {:?}", self.reach_prob);
+        println!("Actions: {:?}", self.actions);
         println!("Pot: {:?}", self.pot);
         println!("History: {:}", self.history);
         println!("Player cards: {:}", self.player_cards());
         println!("Opponent cards: {:}", self.opponent_cards());
         println!("Deck: {:}", self.deck);
+        println!("Util: {:}", self.util);
+        println!("Action utils: {:?}", self.action_utils);
+        println!("Action probs: {:?}", self.action_probs);
         println!("-----------------");
     }
 }
