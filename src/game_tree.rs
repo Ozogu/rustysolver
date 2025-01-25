@@ -4,6 +4,7 @@ use crate::game::Game;
 use crate::node::Node;
 use crate::visitor::Visitor;
 use crate::build_visitor::BuilderVisitor;
+use crate::player::Player;
 use rand::rngs::StdRng;
 use rand::SeedableRng;
 
@@ -50,43 +51,59 @@ impl<G: Game> GameTree<G> {
         self.iterate_tree(node, rng, &WalkMethod::MonteCarlo, visitor);
     }
 
-    fn iterate_tree<V: Visitor>(&self, node: Node, rng: &mut StdRng, method: &WalkMethod, visitor: &mut V) {
+    fn iterate_tree<V: Visitor>(&self, mut node: Node, rng: &mut StdRng, method: &WalkMethod, visitor: &mut V) -> f64 {
         if node.is_terminal(&self.game) {
             visitor.visit_terminal_node(&node);
 
-            return;
+            return self.payoff(&node);
         } else if node.is_street_completing_action() {
             visitor.visit_street_completing_node(&node);
 
+            // When OOP is the one completing the street,
+            // node util from next action is positive.
+            let sign = if node.player == Player::IP { 1.0 } else { -1.0 };
             match method {
                 WalkMethod::MonteCarlo => {
-                    let card = node.deck.get(0).unwrap();
+                    let card = node.deck.draw().unwrap();
                     let next_street = node.history.street().next_street(card.clone());
-                    let mut next_node = node.next_street_node(&self.game, next_street);
-                    next_node.deck.draw();
+                    let next_node = node.next_street_node(&self.game, next_street);
 
-                    self.iterate_tree(next_node, rng, method, visitor);
+                    return sign * self.iterate_tree(next_node, rng, method, visitor);
                 }
                 WalkMethod::Full => {
                     for card in node.deck.iter() {
                         let next_street = node.history.street().next_street(card.clone());
                         let next_node = node.next_street_node(&self.game, next_street);
-                        self.iterate_tree(next_node, rng, method, visitor);
+                        node.util += sign * self.iterate_tree(next_node, rng, method, visitor);
                     }
+
+                    return node.util / node.deck.len() as f64;
                 }
             }
-
-            return;
         } else {
             visitor.visit_action_node(&node);
+            let action_probs = visitor.get_action_probs(&node);
 
             // TODO: implement walk methods
-            for action in node.actions.iter() {
-                let new_node = node.next_action_node(&self.game, action.clone(), 1.0);
+            for i in 0..node.actions.len() {
+                let next_node = node.next_action_node(
+                    &self.game,
+                    node.actions[i].clone(),
+                    action_probs[i]);
 
-                self.iterate_tree(new_node, rng, method, visitor);
+                node.action_utils[i] = -self.iterate_tree(next_node, rng, method, visitor);
+                node.util += action_probs[i] * node.action_utils[i];
             }
+
+            return node.util;
         }
+    }
+
+    fn payoff(&self, node: &Node) -> f64 {
+        let won = self.game.player_wins(&node);
+        let win_amount = node.pot.payoff(node.player, won);
+
+        return win_amount;
     }
 }
 
