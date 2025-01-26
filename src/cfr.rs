@@ -1,14 +1,12 @@
 use rand::SeedableRng;
 use rand::rngs::StdRng;
 use crate::game::Game;
-use crate::node::Node;
-use crate::player::Player;
-use crate::statistics::Statistics;
 use crate::history::History;
 use crate::cfr_visitor::CfrVisitor;
 use crate::game_tree::GameTree;
 use crate::tree_walker::TreeWalker;
 use crate::tree_print_visitor::TreePrintVisitor;
+use crate::statistics_visitor::StatisticsVisitor;
 
 pub struct CFR<G: Game + Clone> {
     game: G,
@@ -62,58 +60,10 @@ impl<G: Game + Clone> CFR<G> {
         visitor.print();
     }
 
-    pub fn build_statistics(&self) -> Statistics {
-        let mut statistics = Statistics::new();
+    pub fn build_statistics(&self) -> StatisticsVisitor<G> {
+        let mut visitor = StatisticsVisitor::new(&self.tree);
+        TreeWalker::walk_tree(&self.game, &mut visitor);
 
-        for deal in self.game.generate_deals() {
-            let node = Node::new(&self.game, deal);
-            self.iterate_statistics(node, &mut statistics);
-        }
-
-        statistics.finalize(&self.game);
-
-        statistics
-    }
-
-    fn iterate_statistics(&self, node: Node, statistics: &mut Statistics) -> f64 {
-        if node.is_terminal(&self.game) {
-            let payoff = self.payoff(&node);
-            statistics.update_node(&node, payoff, node.zero_utils());
-
-            return payoff;
-        } else if node.is_street_completing_action() {
-            let mut node_util = 0.0;
-            let sign = if node.player == Player::IP { 1.0 } else { -1.0 };
-
-            for card in node.deck.iter() {
-                let next_street = node.history.street().next_street(card.clone());
-                let next_node = node.next_street_node(&self.game, next_street);
-
-                node_util += sign * self.iterate_statistics(next_node, statistics);
-            }
-
-            return node_util / node.deck.len() as f64;
-        } else {
-            let strategy = self.tree.average_strategy(&node.info_state());
-            let mut action_utils = node.zero_utils();
-            let mut node_util = 0.0;
-
-            for i in 0..node.actions.len() {
-                let next_node = node.next_action_node(&self.game, node.actions[i].clone(), strategy[i]);
-                action_utils[i] = -self.iterate_statistics(next_node, statistics);
-                node_util += strategy[i] * action_utils[i];
-            }
-
-            statistics.update_node(&node, node_util, action_utils);
-
-            node_util
-        }
-    }
-
-    fn payoff(&self, node: &Node) -> f64 {
-        let won = self.game.player_wins(&node);
-        let win_amount = node.pot.payoff(node.player, won);
-
-        return win_amount;
+        visitor
     }
 }
