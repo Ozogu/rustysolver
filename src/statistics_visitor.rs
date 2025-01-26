@@ -87,11 +87,6 @@ fn update_node(stat_node: &mut StatisticsNode, node: &Node) {
     let i = arg_max(&stat_node.action_util_sums);
     stat_node.br_util = stat_node.action_util_sums[i];
     stat_node.best_response = node.actions[i].clone();
-
-    if node.info_state().history == History::new() {
-        node.log();
-        stat_node.log();
-    }
 }
 
 #[derive(Clone, Debug)]
