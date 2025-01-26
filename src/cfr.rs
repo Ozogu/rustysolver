@@ -1,9 +1,9 @@
 use rand::SeedableRng;
 use rand::rngs::StdRng;
 use crate::game::Game;
-use crate::history::History;
 use crate::cfr_visitor::CfrVisitor;
 use crate::game_tree::GameTree;
+use crate::info_state::InfoState;
 use crate::tree_walker::TreeWalker;
 use crate::tree_print_visitor::TreePrintVisitor;
 use crate::statistics_visitor::StatisticsVisitor;
@@ -45,7 +45,7 @@ impl<G: Game + Clone> CFR<G> {
         while exploitability > threshold {
             ev = self.train_for_iters(iteration_size);
             let statistics = self.build_statistics();
-            exploitability = statistics.node_exploitability(&History::new());
+            exploitability = statistics.node_exploitability(&InfoState::new_empty());
             total_iterations += iteration_size;
             println!("Total iterations: {}, exploitability: {:.2?} %", total_iterations, exploitability);
         }

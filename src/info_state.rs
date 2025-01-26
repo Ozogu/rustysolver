@@ -1,6 +1,8 @@
 use crate::player::Player;
 use crate::hole_cards::HoleCards;
 use crate::history::History;
+use crate::suit::Suit;
+use crate::card::Card;
 use std::fmt;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
@@ -16,6 +18,16 @@ impl InfoState {
             player,
             hole_cards,
             history,
+        }
+    }
+
+    pub fn new_empty() -> Self {
+        InfoState {
+            player: Player::OOP,
+            hole_cards: HoleCards::new(
+                &Card{rank: 0, suit: Suit::Diamonds},
+                &Card{rank: 0, suit: Suit::Diamonds}),
+            history: History::new(),
         }
     }
 
