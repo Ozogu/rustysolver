@@ -1,29 +1,27 @@
-use std::collections::HashMap;
 use crate::node::Node;
 use crate::visitor::Visitor;
-use crate::info_state::InfoState;
+use crate::game::Game;
+use crate::game_tree::GameTree;
 
-pub struct BuilderVisitor {
-    pub regrets: HashMap<InfoState, Vec<f64>>,
-    pub strategy_sum: HashMap<InfoState, Vec<f64>>,
+pub struct BuilderVisitor<'a, G: Game + Clone> {
+    pub tree: &'a mut GameTree<G>,
 }
 
-impl BuilderVisitor {
-    pub fn new() -> Self {
+impl<'a, G: Game + Clone> BuilderVisitor<'a, G> {
+    pub fn new(tree: &'a mut GameTree<G>) -> Self {
         BuilderVisitor {
-            regrets: HashMap::new(),
-            strategy_sum: HashMap::new(),
+            tree
         }
     }
 
     fn add_node(&mut self, node: &Node) {
         let info_state = node.info_state().clone();
-        self.regrets.entry(info_state.clone()).or_insert(node.zero_utils());
-        self.strategy_sum.entry(info_state).or_insert(node.zero_utils());
+        self.tree.regrets.entry(info_state.clone()).or_insert(node.zero_utils());
+        self.tree.strategy_sum.entry(info_state).or_insert(node.zero_utils());
     }
 }
 
-impl Visitor for BuilderVisitor {
+impl<'a, G: Game + Clone> Visitor for BuilderVisitor<'a, G> {
     fn visit_node(&mut self, _: &Node) {}
     fn visit_terminal_node(&mut self, _: &Node) {}
 

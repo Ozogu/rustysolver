@@ -20,11 +20,9 @@ impl<G: Game + Clone> GameTree<G> {
     }
 
     pub fn build(&mut self) {
-        let mut builder_visitor = BuilderVisitor::new();
-        TreeWalker::walk_tree(&self.game, &mut builder_visitor);
-
-        self.regrets = builder_visitor.regrets;
-        self.strategy_sum = builder_visitor.strategy_sum;
+        let game = self.game.clone();
+        let mut builder_visitor = BuilderVisitor::new(self);
+        TreeWalker::walk_tree(&game, &mut builder_visitor);
     }
 
     pub fn print_tree(&self) {
