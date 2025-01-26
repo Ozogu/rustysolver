@@ -107,6 +107,7 @@ impl Node {
     }
 
     pub fn log(&self) {
+        println!("Info state: {:}", self.info_state());
         println!("Player: {:}", self.player);
         println!("Reach prob: {:?}", self.reach_prob);
         println!("Actions: {:?}", self.actions);

@@ -47,7 +47,7 @@ impl Game for Kuhn {
         let last = history.last().unwrap_or(&HistoryNode::Action(Action::Check)).action();
         match last {
             Action::Check => vec![Action::Check, Action::Bet(Bet::P(50))],
-            Action::Bet(Bet::P(50)) => vec![Action::Call, Action::Fold],
+            Action::Bet(Bet::P(50)) => vec![Action::Fold, Action::Call],
             _ => vec![],
         }
     }
@@ -123,7 +123,7 @@ mod tests {
         let kuhn = Kuhn::new();
         let history = History::new_from_vec(vec![HistoryNode::Action(Action::Bet(Bet::P(50)))]);
         let actions = kuhn.legal_actions(&history);
-        assert_eq!(actions, vec![Action::Call, Action::Fold]);
+        assert_eq!(actions, vec![Action::Fold, Action::Call]);
     }
 
     #[test]
