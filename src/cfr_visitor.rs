@@ -20,7 +20,7 @@ impl<'a> CfrVisitor<'a> {
 }
 
 impl<'a> Visitor for CfrVisitor<'a> {
-    fn visit_node(&mut self, _: &Node) {}
+    fn visit_root_node(&mut self, _: &InfoState, _: f64) {}
     fn visit_terminal_node(&mut self, _: &Node) {}
     fn visit_street_completing_node(&mut self, _: &Node) {}
 

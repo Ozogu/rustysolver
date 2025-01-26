@@ -1,4 +1,5 @@
 use crate::game::Game;
+use crate::info_state::InfoState;
 use crate::node::Node;
 use crate::player::Player;
 use crate::visitor::Visitor;
@@ -14,8 +15,11 @@ impl TreeWalker {
         let rng = &mut StdRng::seed_from_u64(0);
         game.generate_deals().iter().for_each(|deal| {
             let node = Node::new(game, deal.clone());
-            ev += Self::iterate_tree(game, node, rng, &WalkMethod::Full, visitor);
+            let node_ev = Self::iterate_tree(game, node, rng, &WalkMethod::Full, visitor);
+            ev += node_ev;
             deal_count += 1;
+
+            visitor.visit_root_node(&InfoState::new_empty(), node_ev);
         });
 
         return ev / deal_count as f64;
@@ -24,12 +28,13 @@ impl TreeWalker {
     pub fn monte_carlo_iterate<G: Game, V: Visitor>(game: &G, rng: &mut StdRng, visitor: &mut V) -> f64 {
         let deal = game.deal(rng);
         let node = Node::new(game, deal);
-        return Self::iterate_tree(game, node, rng, &WalkMethod::MonteCarlo, visitor);
+        let node_ev = Self::iterate_tree(game, node, rng, &WalkMethod::MonteCarlo, visitor);
+        visitor.visit_root_node(&InfoState::new_empty(), node_ev);
+
+        return node_ev;
     }
 
     fn iterate_tree<G: Game, V: Visitor>(game: &G, mut node: Node, rng: &mut StdRng, method: &WalkMethod, visitor: &mut V) -> f64 {
-        visitor.visit_node(&node);
-
         if node.is_terminal(game) {
             visitor.visit_terminal_node(&node);
 
