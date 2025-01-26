@@ -2,7 +2,6 @@ use crate::node::Node;
 use crate::visitor::Visitor;
 use crate::game::Game;
 use crate::game_tree::GameTree;
-use crate::info_state::InfoState;
 
 pub struct BuilderVisitor<'a, G: Game + Clone> {
     pub tree: &'a mut GameTree<G>,
@@ -23,9 +22,6 @@ impl<'a, G: Game + Clone> BuilderVisitor<'a, G> {
 }
 
 impl<'a, G: Game + Clone> Visitor for BuilderVisitor<'a, G> {
-    fn visit_root_node(&mut self, _: &InfoState, _: f64) {}
-    fn visit_terminal_node(&mut self, _: &Node) {}
-
     fn visit_street_completing_node(&mut self, node: &Node) {
         self.add_node(node);
     }

@@ -20,10 +20,6 @@ impl<'a> CfrVisitor<'a> {
 }
 
 impl<'a> Visitor for CfrVisitor<'a> {
-    fn visit_root_node(&mut self, _: &InfoState, _: f64) {}
-    fn visit_terminal_node(&mut self, _: &Node) {}
-    fn visit_street_completing_node(&mut self, _: &Node) {}
-
     fn visit_action_node(&mut self, node: &Node) {
         for i in 0..node.action_probs.len() {
             self.strategy_sum.get_mut(&node.info_state()).unwrap()[i] +=

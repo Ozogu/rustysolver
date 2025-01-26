@@ -3,7 +3,6 @@ use crate::visitor::Visitor;
 use crate::game_tree::GameTree;
 use crate::kuhn::Kuhn;
 use crate::tree_walker::TreeWalker;
-use crate::info_state::InfoState;
 
 pub struct IdealKuhnBuilderVisitor {
     pub tree: GameTree<Kuhn>,
@@ -14,7 +13,7 @@ impl IdealKuhnBuilderVisitor {
     pub fn new() -> Self {
         let mut visitor = IdealKuhnBuilderVisitor {
             tree: GameTree::new(Kuhn::new()),
-            a: 0.5,
+            a: 1.0/3.0,
         };
 
         TreeWalker::walk_tree(&Kuhn::new(), &mut visitor);
@@ -49,10 +48,6 @@ impl IdealKuhnBuilderVisitor {
 }
 
 impl Visitor for IdealKuhnBuilderVisitor {
-    fn visit_root_node(&mut self, _: &InfoState, _: f64) {}
-    fn visit_terminal_node(&mut self, _: &Node) {}
-    fn visit_street_completing_node(&mut self, _: &Node) {}
-
     fn visit_action_node(&mut self, node: &Node) {
         self.add_node(node);
     }
