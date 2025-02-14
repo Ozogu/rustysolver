@@ -3,7 +3,6 @@ use crate::visitor::Visitor;
 use crate::node::Node;
 use crate::action::Action;
 use std::collections::HashMap;
-use std::os::linux::raw::stat;
 use crate::game_tree::GameTree;
 use crate::game::Game;
 use crate::utils::Utils;
@@ -186,7 +185,7 @@ mod tests {
     use super::*;
     use crate::history_node::HistoryNode;
     use crate::hole_cards::HoleCards;
-    use crate::info_state::{self, InfoState};
+    use crate::info_state::InfoState;
     use crate::kuhn::Kuhn;
     use crate::ideal_kuhn_builder_visitor::IdealKuhnBuilderVisitor;
     use crate::player::Player;
@@ -205,6 +204,10 @@ mod tests {
             "Expected: -1/18, got: {:.4}", statistics_visitor.node_util(&info_state));
 
         for (info_state, stat_node) in statistics_visitor.stat_nodes.iter() {
+            if stat_node.action_util_sums.len() == 0 {
+                continue;
+            }
+
             debug_assert!(stat_node.action_util_sums[0] - stat_node.action_util_sums[1] < 1e-6,
                 "Infostate {:}, Expected both actions to have the same util, got: {:?}",
                 info_state, stat_node.action_util_sums);
@@ -214,22 +217,22 @@ mod tests {
             "Expected: 0.0, got: {:.4}", statistics_visitor.node_br_util(&info_state));
     }
 
-    // #[test]
-    // fn test_exploitable_root() {
-    //     let mut tree: GameTree<Kuhn> = IdealKuhnBuilderVisitor::new().tree;
-    //     let cards2 = InfoState::new(Player::IP, HoleCards::new_with_rank(2),
-    //         History::new_from_vec(vec![HistoryNode::Action(Action::Check)]));
-    //     *tree.strategy_sum.get_mut(&cards2).unwrap() = vec![0.0, 1.0];
-    //     let mut statistics_visitor = StatisticsVisitor::new(&tree);
-    //     statistics_visitor.build();
+    #[test]
+    fn test_exploitable_root() {
+        let mut tree: GameTree<Kuhn> = IdealKuhnBuilderVisitor::new().tree;
+        let cards2 = InfoState::new(Player::IP, HoleCards::new_with_rank(2),
+            History::new_from_vec(vec![HistoryNode::Action(Action::Check)]));
+        *tree.strategy_sum.get_mut(&cards2).unwrap() = vec![0.0, 1.0];
+        let mut statistics_visitor = StatisticsVisitor::new(&tree);
+        statistics_visitor.build();
 
-    //     // Note to self: Root utils are -1.0 and 1.0 because the IP player is also playing BR strategy and not equilibrium strategy.
-    //     // Should update br visitor to only change one players strategy and not both.
-    //     let info_state = InfoState::new_empty();
-    //     assert_ne!(statistics_visitor.node_util(&info_state), -1.0/18.0);
-    //     assert!(statistics_visitor.node_br_util(&info_state) > -1.0/18.0);
-    //     assert_eq!(statistics_visitor.node_exploitability(&info_state), 0.0);
-    // }
+        // Note to self: Root utils are -1.0 and 1.0 because the IP player is also playing BR strategy and not equilibrium strategy.
+        // Should update br visitor to only change one players strategy and not both.
+        let info_state = InfoState::new_empty();
+        assert_ne!(statistics_visitor.node_util(&info_state), -1.0/18.0);
+        assert!(statistics_visitor.node_br_util(&info_state) > -1.0/18.0);
+        assert_eq!(statistics_visitor.node_exploitability(&info_state), 0.0);
+    }
 
     #[test]
     fn test_first_child_util_sum() {
