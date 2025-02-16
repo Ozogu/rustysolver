@@ -1,4 +1,4 @@
-use crate::info_state::{self, InfoState};
+use crate::info_state::InfoState;
 use crate::visitor::Visitor;
 use crate::node::Node;
 use crate::action::Action;
@@ -35,32 +35,28 @@ impl<'a, G: Game + Clone> StatisticsVisitor<'a, G> {
 
     pub fn node_util(&self, info_state: &InfoState) -> f64 {
         let stat_node = self.stat_nodes.get(info_state).unwrap();
-        let updates = if stat_node.updates > 0 { stat_node.updates as f64 } else { 1.0 };
 
-        stat_node.util_sum / updates
+        stat_node.util_sum / stat_node.visits as f64
     }
 
     pub fn node_action_utils(&self, info_state: &InfoState) -> Vec<f64> {
         let stat_node = self.stat_nodes.get(info_state).unwrap();
-        let updates = if stat_node.updates > 0 { stat_node.updates as f64 } else { 1.0 };
 
-        stat_node.action_util_sums.iter().map(|x| x / updates).collect()
+        stat_node.action_util_sums.iter().map(|x| x / stat_node.visits as f64).collect()
     }
 
     pub fn node_br_util(&self, info_state: &InfoState) -> f64 {
         let stat_node = self.stat_nodes.get(info_state).unwrap();
-        let updates = if stat_node.updates > 0 { stat_node.updates as f64 } else { 1.0 };
 
-        stat_node.br_util / updates
+        stat_node.br_util / stat_node.visits as f64
     }
 
     pub fn node_exploitability(&self, info_state: &InfoState) -> f64 {
         let stat_node = self.stat_nodes.get(info_state).unwrap();
         let br_util = stat_node.br_util;
         let util = stat_node.util_sum;
-        let updates = if stat_node.updates > 0 { stat_node.updates as f64 } else { 1.0 };
 
-        ((br_util - util) / updates) / util.abs() * 100.0
+        ((br_util - util) / stat_node.visits as f64) / util.abs() * 100.0
     }
 }
 
@@ -69,9 +65,8 @@ impl<'a, G: Game + Clone> Visitor for StatisticsVisitor<'a, G> {
         let stat_node = self.stat_nodes.entry(info_state.clone()).or_insert(
             StatisticsNode::new(0));
 
-        stat_node.reach_prob_sum = 1.0;
         stat_node.util_sum += util;
-        stat_node.updates += 1;
+        stat_node.visits += 1;
     }
 
 
@@ -90,8 +85,8 @@ impl<'a, G: Game + Clone> Visitor for StatisticsVisitor<'a, G> {
 
 fn update_node(stat_node: &mut StatisticsNode, node: &Node) {
     let reach_prob = node.player_reach_prob() * node.opponent_reach_prob();
-    stat_node.reach_prob_sum += reach_prob;
     stat_node.util_sum += node.util * reach_prob;
+    stat_node.visits += 1;
 
     for i in 0..stat_node.action_util_sums.len() {
         stat_node.action_util_sums[i] += node.action_utils[i] * reach_prob;
@@ -136,9 +131,6 @@ impl<'a, G: Game + Clone> Visitor for BestReponseVisitor<'a, G> {
             stat_node.br_util += node.util * reach_prob;
             let i = Utils::arg_max(&stat_node.action_util_sums);
             stat_node.best_response = node.actions[i].clone();
-
-            println!("info state: {:} action utils: {:.2?} br util: {:.2} br: {:?}",
-                node.info_state(), stat_node.action_util_sums, stat_node.br_util, stat_node.best_response);
         }
     }
 
@@ -156,8 +148,7 @@ struct StatisticsNode {
     pub action_util_sums: Vec<f64>,
     pub br_util: f64,
     pub best_response: Action,
-    pub reach_prob_sum: f64,
-    pub updates: u32,
+    pub visits: u32,
 }
 
 impl StatisticsNode {
@@ -167,8 +158,7 @@ impl StatisticsNode {
             action_util_sums: vec![0.0; actions],
             br_util: 0.0,
             best_response: Action::None,
-            reach_prob_sum: 0.0,
-            updates: 0,
+            visits: 0,
         }
     }
 
@@ -177,14 +167,15 @@ impl StatisticsNode {
         println!("Action util sums: {:.2?}", self.action_util_sums);
         println!("BR Util: {:.2}", self.br_util);
         println!("Best response: {:?}", self.best_response);
-        println!("Reach prob sum: {:.2}", self.reach_prob_sum);
-        println!("Updates: {}", self.updates);
+        println!("visits: {}", self.visits);
         println!("_________________");
     }
 }
 
 #[cfg(test)]
 mod tests {
+    use std::os::linux::raw::stat;
+
     use super::*;
     use crate::history_node::HistoryNode;
     use crate::hole_cards::HoleCards;
@@ -192,7 +183,6 @@ mod tests {
     use crate::kuhn::Kuhn;
     use crate::ideal_kuhn_builder_visitor::IdealKuhnBuilderVisitor;
     use crate::player::Player;
-    use crate::tree_walker::TreeWalker;
     use crate::bet::Bet;
     use crate::history::History;
 
@@ -240,7 +230,7 @@ mod tests {
     fn test_first_child_util_sum() {
         let tree = IdealKuhnBuilderVisitor::new().tree;
         let mut statistics_visitor = StatisticsVisitor::new(&tree);
-        TreeWalker::walk_tree(&Kuhn::new(), &mut statistics_visitor);
+        statistics_visitor.build();
 
         let mut ev = 0.0;
         let mut info_state = InfoState::new(Player::OOP, HoleCards::new_with_rank(1), History::new());
@@ -261,7 +251,7 @@ mod tests {
     fn test_oop_1_x_b() {
         let tree = IdealKuhnBuilderVisitor::new().tree;
         let mut statistics_visitor = StatisticsVisitor::new(&tree);
-        TreeWalker::walk_tree(&Kuhn::new(), &mut statistics_visitor);
+        statistics_visitor.build();
 
         let info_state = InfoState::new(Player::OOP, HoleCards::new_with_rank(1), History::new_from_vec(
             vec![HistoryNode::Action(Action::Check), HistoryNode::Action(Action::Bet(Bet::P(50)))]));
@@ -273,7 +263,7 @@ mod tests {
     fn test_oop_1() {
         let tree = IdealKuhnBuilderVisitor::new().tree;
         let mut statistics_visitor = StatisticsVisitor::new(&tree);
-        TreeWalker::walk_tree(&Kuhn::new(), &mut statistics_visitor);
+        statistics_visitor.build();
 
         let info_state = InfoState::new(Player::OOP, HoleCards::new_with_rank(1), History::new());
 
@@ -288,15 +278,18 @@ mod tests {
 
         // average util = (-4/3 + -2/3) / 2 = -1
 
-        assert_eq!(statistics_visitor.node_util(&info_state), -1.0);
-        assert_eq!(statistics_visitor.node_br_util(&info_state), -1.0);
+
+        debug_assert!(statistics_visitor.node_util(&info_state) - (-1.0) < 1e-6,
+            "Expected: -1.0, got: {:.4}", statistics_visitor.node_util(&info_state));
+        debug_assert!(statistics_visitor.node_br_util(&info_state) - (-1.0) < 1e-6,
+            "Expected: -1.0, got: {:.4}", statistics_visitor.node_br_util(&info_state));
     }
 
     #[test]
     fn test_oop_2() {
         let tree = IdealKuhnBuilderVisitor::new().tree;
         let mut statistics_visitor = StatisticsVisitor::new(&tree);
-        TreeWalker::walk_tree(&Kuhn::new(), &mut statistics_visitor);
+        statistics_visitor.build();
 
         let info_state = InfoState::new(Player::OOP, HoleCards::new_with_rank(2), History::new());
 
@@ -311,15 +304,17 @@ mod tests {
 
         // average util = (1 + -5/3) / 2 = -1/3
 
-        assert_eq!(statistics_visitor.node_util(&info_state), -1.0/3.0);
-        assert_eq!(statistics_visitor.node_br_util(&info_state), -1.0/3.0);
+        debug_assert!(statistics_visitor.node_util(&info_state) - (-1.0/3.0) < 1e-6,
+            "Expected: -1/3, got: {:.4}", statistics_visitor.node_util(&info_state));
+        debug_assert!(statistics_visitor.node_br_util(&info_state) - (-1.0/3.0) < 1e-6,
+            "Expected: -1/3, got: {:.4}", statistics_visitor.node_br_util(&info_state));
     }
 
     #[test]
     fn test_oop_3() {
         let tree = IdealKuhnBuilderVisitor::new().tree;
         let mut statistics_visitor = StatisticsVisitor::new(&tree);
-        TreeWalker::walk_tree(&Kuhn::new(), &mut statistics_visitor);
+        statistics_visitor.build();
 
         let info_state = InfoState::new(Player::OOP, HoleCards::new_with_rank(3), History::new());
 
@@ -334,8 +329,10 @@ mod tests {
 
         // average util = (1 + 4/3) / 2 = 7/6
 
-        assert_eq!(statistics_visitor.node_util(&info_state), 7.0/6.0);
-        assert_eq!(statistics_visitor.node_br_util(&info_state), 7.0/6.0);
+        debug_assert!(statistics_visitor.node_util(&info_state) - (7.0/6.0) < 1e-6,
+            "Expected: 7/6, got: {:.4}", statistics_visitor.node_util(&info_state));
+        debug_assert!(statistics_visitor.node_br_util(&info_state) - (7.0/6.0) < 1e-6,
+            "Expected: 7/6, got: {:.4}", statistics_visitor.node_br_util(&info_state));
     }
     // Total EV = (-1 + -1/3 + 7/6) / 3 = -1/18
 }
