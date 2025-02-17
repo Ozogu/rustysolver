@@ -189,6 +189,7 @@ mod tests {
     use crate::player::Player;
     use crate::bet::Bet;
     use crate::history::History;
+    use crate::kuhn::Kuhn;
 
     #[test]
     fn test_ideal_root() {
@@ -207,19 +208,19 @@ mod tests {
 
     #[test]
     fn test_exploitable_root() {
-        // let mut tree: GameTree<Kuhn> = IdealKuhnBuilderVisitor::new().tree;
-        // let cards2 = InfoState::new(Player::IP, HoleCards::new_with_rank(2),
-        //     History::new_from_vec(vec![HistoryNode::Action(Action::Check)]));
-        // *tree.strategy_sum.get_mut(&cards2).unwrap() = vec![0.0, 1.0];
-        // let mut statistics_visitor = StatisticsVisitor::new(&tree);
-        // statistics_visitor.build();
+        let mut tree: GameTree<Kuhn> = IdealKuhnBuilderVisitor::new().tree;
+        // Create suboptimal strategy for player 1
+        let cards2 = InfoState::new(Player::IP, HoleCards::new_with_rank(2),
+            History::new_from_vec(vec![HistoryNode::Action(Action::Check)]));
+        *tree.strategy_sum.get_mut(&cards2).unwrap() = vec![0.0, 1.0];
 
-        // // Note to self: Root utils are -1.0 and 1.0 because the IP player is also playing BR strategy and not equilibrium strategy.
-        // // Should update br visitor to only change one players strategy and not both.
-        // let info_state = InfoState::new_empty();
-        // assert_ne!(statistics_visitor.node_util(&info_state), -1.0/18.0);
-        // assert!(statistics_visitor.node_br_util(&info_state) > -1.0/18.0);
-        // assert_eq!(statistics_visitor.node_exploitability(&info_state), 0.0);
+        let mut statistics_visitor = StatisticsVisitor::new(&tree);
+        statistics_visitor.build();
+
+        let info_state = InfoState::new_empty();
+        assert_ne!(statistics_visitor.node_util(&info_state), -1.0/18.0);
+        assert!(statistics_visitor.node_br_util(&info_state) > -1.0/18.0);
+        assert!(statistics_visitor.node_exploitability(&info_state) > 0.0);
     }
 
     #[test]
