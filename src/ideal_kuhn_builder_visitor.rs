@@ -21,6 +21,17 @@ impl IdealKuhnBuilderVisitor {
         visitor
     }
 
+    pub fn new_a(a: f64) -> Self {
+        let mut visitor = IdealKuhnBuilderVisitor {
+            tree: GameTree::new(Kuhn::new()),
+            a,
+        };
+
+        TreeWalker::walk_tree(&Kuhn::new(), &mut visitor);
+
+        visitor
+    }
+
     fn add_node(&mut self, node: &Node) {
         let info_state  = node.info_state().clone();
         let a = self.a;
