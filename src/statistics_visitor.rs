@@ -85,6 +85,9 @@ impl<'a, G: Game + Clone> Visitor for StatisticsVisitor<'a, G> {
 
 fn update_node(stat_node: &mut StatisticsNode, node: &Node) {
     let reach_prob = node.player_reach_prob() * node.opponent_reach_prob();
+    // Technically we did not reach this node.
+    if reach_prob == 0.0 { return; }
+
     stat_node.util_sum += node.util * reach_prob;
     stat_node.visits += 1;
 
@@ -256,7 +259,8 @@ mod tests {
         let info_state = InfoState::new(Player::OOP, HoleCards::new_with_rank(1), History::new_from_vec(
             vec![HistoryNode::Action(Action::Check), HistoryNode::Action(Action::Bet(Bet::P(50)))]));
 
-        assert!((statistics_visitor.node_util(&info_state) - (-2.0/3.0)).abs() < 1e-6);
+        debug_assert!((statistics_visitor.node_util(&info_state) - (-2.0/3.0)).abs() < 1e-6,
+            "Expected: -2/3, got: {:.4}", statistics_visitor.node_util(&info_state));
     }
 
     #[test]
