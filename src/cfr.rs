@@ -62,7 +62,7 @@ impl<G: Game + Clone> CFR<G> {
 
     pub fn build_statistics(&self) -> StatisticsVisitor<G> {
         let mut visitor = StatisticsVisitor::new(&self.tree);
-        TreeWalker::walk_tree(&self.game, &mut visitor);
+        visitor.build();
 
         visitor
     }
