@@ -1,9 +1,8 @@
-use crate::info_state::InfoState;
+use crate::info_state::{self, InfoState};
 use crate::visitor::Visitor;
 use crate::node::Node;
 use crate::action::Action;
 use std::collections::HashMap;
-use std::os::linux::raw::stat;
 use crate::game_tree::GameTree;
 use crate::game::Game;
 use crate::utils::Utils;
@@ -71,13 +70,12 @@ impl<'a, G: Game + Clone> StatisticsVisitor<'a, G> {
         let br_util = self.node_br_util(info_state);
         let util = self.node_util(info_state);
 
-        for (info_state, _) in &self.stat_nodes {
-            println!("Info state: {:} Util {:.2} BR util {:.2}",
-                info_state, self.node_util(info_state), self.node_br_util(info_state));
+        // BR util may be smaller than util if the node util
+        // because node util is weighted by reach probability.
+        if info_state == &InfoState::new_empty() {
+            debug_assert!(br_util >= util,
+                "BR util should be greater than or equal to util: BR: {:.2}, Util: {:.2}", br_util, util);
         }
-
-        debug_assert!(br_util >= util,
-            "BR util should be greater than or equal to util: BR: {:.2}, Util: {:.2}", br_util, util);
         (br_util - util) / util * 100.0
     }
 }
@@ -157,6 +155,9 @@ impl<'a, G: Game + Clone> Visitor for BestReponseVisitor<'a, G> {
             stat_node.br_util += node.util * reach_prob;
             let i = Utils::arg_max(&stat_node.action_util_sums);
             stat_node.best_response = node.actions[i].clone();
+
+            // node.log();
+            // stat_node.log();
         };
     }
 
@@ -213,6 +214,16 @@ mod tests {
     use crate::history::History;
     use crate::kuhn::Kuhn;
 
+    fn create_exploitable_IP_2_strategy() -> GameTree<Kuhn> {
+        let mut tree: GameTree<Kuhn> = IdealKuhnBuilderVisitor::new().tree;
+        // Create suboptimal strategy for player 1
+        let cards2 = InfoState::new(Player::IP, HoleCards::new_with_rank(2),
+            History::new_from_vec(vec![HistoryNode::Action(Action::Check)]));
+        *tree.strategy_sum.get_mut(&cards2).unwrap() = vec![0.0, 1.0];
+
+        tree
+    }
+
     #[test]
     fn test_ideal_root() {
         let tree = IdealKuhnBuilderVisitor::new().tree;
@@ -230,19 +241,66 @@ mod tests {
 
     #[test]
     fn test_exploitable_root() {
-        let mut tree: GameTree<Kuhn> = IdealKuhnBuilderVisitor::new().tree;
-        // Create suboptimal strategy for player 1
-        let cards2 = InfoState::new(Player::IP, HoleCards::new_with_rank(2),
-            History::new_from_vec(vec![HistoryNode::Action(Action::Check)]));
-        *tree.strategy_sum.get_mut(&cards2).unwrap() = vec![0.0, 1.0];
-
+        let tree = create_exploitable_IP_2_strategy();
         let mut statistics_visitor = StatisticsVisitor::new(&tree);
         statistics_visitor.build();
 
         let info_state = InfoState::new_empty();
         assert_ne!(statistics_visitor.node_util(&info_state), -1.0/18.0);
         assert!(statistics_visitor.node_br_util(&info_state) > -1.0/18.0);
-        assert!(statistics_visitor.node_exploitability(&info_state) > 0.0);
+        debug_assert!(statistics_visitor.node_exploitability(&info_state) > 0.0,
+            "Expected positive exploitability, got: {:.4}", statistics_visitor.node_exploitability(&info_state));
+    }
+
+    #[test]
+    fn test_exploitable_oop_1() {
+        let tree = create_exploitable_IP_2_strategy();
+        let mut statistics_visitor = StatisticsVisitor::new(&tree);
+        statistics_visitor.build();
+
+        // Best response EV
+        // 1 vs 2 X line util: 1 * 1 * -1 = -1
+        // 1 vs 3 X line util: 1 * 1 * -1 = -1
+        // Average util = (-1 + -1) / 2 = -1
+
+        let info_state = InfoState::new(Player::OOP, HoleCards::new_with_rank(1), History::new());
+        debug_assert!((statistics_visitor.node_util(&info_state) - -1.0).abs() < 1e-6,
+            "Expected: -1.0, got: {:.4}", statistics_visitor.node_util(&info_state));
+        debug_assert!((statistics_visitor.node_br_util(&info_state) - -1.0).abs() < 1e-6,
+            "Expected: -1.0, got: {:.4}", statistics_visitor.node_br_util(&info_state));
+    }
+
+    #[test]
+    fn test_exploitable_oop_2() {
+        let tree = create_exploitable_IP_2_strategy();
+        let mut statistics_visitor = StatisticsVisitor::new(&tree);
+        statistics_visitor.build();
+
+        // Nothing changed in this part of the tree, should be same as ideal.
+
+        let info_state = InfoState::new(Player::OOP, HoleCards::new_with_rank(2), History::new());
+        debug_assert!((statistics_visitor.node_util(&info_state) - -1.0/3.0).abs() < 1e-6,
+            "Expected: -1/3, got: {:.4}", statistics_visitor.node_util(&info_state));
+        debug_assert!((statistics_visitor.node_br_util(&info_state) - -1.0/3.0).abs() < 1e-6,
+            "Expected: -1/3, got: {:.4}", statistics_visitor.node_br_util(&info_state));
+    }
+
+    #[test]
+    fn test_exploitable_oop_3() {
+        let tree = create_exploitable_IP_2_strategy();
+        let mut statistics_visitor = StatisticsVisitor::new(&tree);
+        statistics_visitor.build();
+
+        // Best response EV
+        // 3 vs 1 X line util: 1 * ((2/3 * 1) + 1/3 * (1 * 2)) = 4/3
+        // 3 vs 2 X line util: 1 * 1 * 1 * 2 = 2
+        // Average util = (4/3 + 2) / 2 = 10/3
+
+        let info_state = InfoState::new(Player::OOP, HoleCards::new_with_rank(3), History::new());
+        debug_assert!((statistics_visitor.node_util(&info_state) - 7.0/6.0).abs() < 1e-6,
+            "Expected: 7/6, got: {:.4}", statistics_visitor.node_util(&info_state));
+        debug_assert!((statistics_visitor.node_br_util(&info_state) - 10.0/3.0).abs() < 1e-6,
+            "Expected: 10/3, got: {:.4}", statistics_visitor.node_br_util(&info_state));
     }
 
     #[test]
