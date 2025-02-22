@@ -237,6 +237,8 @@ mod tests {
             "Expected: -1/18, got: {:.4}", statistics_visitor.node_util(&info_state));
         debug_assert!((statistics_visitor.node_br_util(&info_state) - ideal_ev).abs() < 1e-6,
             "Expected: -1/18, got: {:.4}", statistics_visitor.node_br_util(&info_state));
+        debug_assert!(statistics_visitor.node_exploitability(&info_state) < 1e-6,
+            "Expected 0 exploitability, got: {:.4}", statistics_visitor.node_exploitability(&info_state));
     }
 
     #[test]
@@ -268,6 +270,8 @@ mod tests {
             "Expected: -1.0, got: {:.4}", statistics_visitor.node_util(&info_state));
         debug_assert!((statistics_visitor.node_br_util(&info_state) - -1.0).abs() < 1e-6,
             "Expected: -1.0, got: {:.4}", statistics_visitor.node_br_util(&info_state));
+        debug_assert!(statistics_visitor.node_exploitability(&info_state) < 1e-6,
+            "Expected 0 exploitability, got: {:.4}", statistics_visitor.node_exploitability(&info_state));
     }
 
     #[test]
@@ -283,6 +287,8 @@ mod tests {
             "Expected: -1/3, got: {:.4}", statistics_visitor.node_util(&info_state));
         debug_assert!((statistics_visitor.node_br_util(&info_state) - -1.0/3.0).abs() < 1e-6,
             "Expected: -1/3, got: {:.4}", statistics_visitor.node_br_util(&info_state));
+        debug_assert!(statistics_visitor.node_exploitability(&info_state) < 1e-6,
+            "Expected 0 exploitability, got: {:.4}", statistics_visitor.node_exploitability(&info_state));
     }
 
     #[test]
@@ -301,6 +307,8 @@ mod tests {
             "Expected: 7/6, got: {:.4}", statistics_visitor.node_util(&info_state));
         debug_assert!((statistics_visitor.node_br_util(&info_state) - 10.0/3.0).abs() < 1e-6,
             "Expected: 10/3, got: {:.4}", statistics_visitor.node_br_util(&info_state));
+        debug_assert!(statistics_visitor.node_exploitability(&info_state) == 0.0,
+            "Expected positive exploitability, got: {:.4}", statistics_visitor.node_exploitability(&info_state));
     }
 
     #[test]
@@ -363,6 +371,8 @@ mod tests {
             "Expected: -1.0, got: {:.4}", statistics_visitor.node_util(&info_state));
         debug_assert!((statistics_visitor.node_br_util(&info_state) - (-1.0)).abs() < 1e-6,
             "Expected: -1.0, got: {:.4}", statistics_visitor.node_br_util(&info_state));
+        debug_assert!(statistics_visitor.node_exploitability(&info_state) < 1e-6,
+            "Expected 0 exploitability, got: {:.4}", statistics_visitor.node_exploitability(&info_state));
     }
 
     #[test]
@@ -388,6 +398,8 @@ mod tests {
             "Expected: -1/3, got: {:.4}", statistics_visitor.node_util(&info_state));
         debug_assert!((statistics_visitor.node_br_util(&info_state) - (-1.0/3.0)).abs() < 1e-6,
             "Expected: -1/3, got: {:.4}", statistics_visitor.node_br_util(&info_state));
+        debug_assert!(statistics_visitor.node_exploitability(&info_state) < 1e-6,
+            "Expected 0 exploitability, got: {:.4}", statistics_visitor.node_exploitability(&info_state));
     }
 
     #[test]
@@ -413,6 +425,8 @@ mod tests {
             "Expected: 7/6, got: {:.4}", statistics_visitor.node_util(&info_state));
         debug_assert!((statistics_visitor.node_br_util(&info_state) - (7.0/6.0)).abs() < 1e-6,
             "Expected: 7/6, got: {:.4}", statistics_visitor.node_br_util(&info_state));
+        debug_assert!(statistics_visitor.node_exploitability(&info_state) < 1e-6,
+            "Expected 0 exploitability, got: {:.4}", statistics_visitor.node_exploitability(&info_state));
     }
     // Total EV = (-1 + -1/3 + 7/6) / 3 = -1/18
 
@@ -440,5 +454,7 @@ mod tests {
             "Expected: 7/6, got: {:.4}", statistics_visitor.node_util(&info_state));
         debug_assert!((statistics_visitor.node_br_util(&info_state) - (7.0/6.0)).abs() < 1e-6,
             "Expected: 7/6, got: {:.4}", statistics_visitor.node_br_util(&info_state));
+        debug_assert!(statistics_visitor.node_exploitability(&info_state) < 1e-6,
+            "Expected 0 exploitability, got: {:.4}", statistics_visitor.node_exploitability(&info_state));
     }
 }
