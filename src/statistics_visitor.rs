@@ -36,28 +36,49 @@ impl<'a, G: Game + Clone> StatisticsVisitor<'a, G> {
 
     pub fn node_util(&self, info_state: &InfoState) -> f64 {
         let stat_node = self.stat_nodes.get(info_state).unwrap();
+        if stat_node.visits == 0 {
+            return 0.0;
+        }
 
-        stat_node.rb_weighted_util_sum / stat_node.visits as f64
+        let ev = stat_node.rb_weighted_util_sum / stat_node.visits as f64;
+        debug_assert!(ev.is_finite(), "Expected finite value for info state {:}, got: {:.2}", info_state, ev);
+
+        ev
     }
 
     pub fn node_action_utils(&self, info_state: &InfoState) -> Vec<f64> {
         let stat_node = self.stat_nodes.get(info_state).unwrap();
+        if stat_node.visits == 0 {
+            return vec![0.0; stat_node.action_util_sums.len()];
+        }
 
         stat_node.action_util_sums.iter().map(|x| x * stat_node.reach_prob / stat_node.visits as f64).collect()
     }
 
     pub fn node_br_util(&self, info_state: &InfoState) -> f64 {
         let stat_node = self.stat_nodes.get(info_state).unwrap();
+        if stat_node.visits == 0 {
+            return 0.0;
+        }
 
-        stat_node.br_util / stat_node.visits as f64
+        let ev = stat_node.br_util / stat_node.visits as f64;
+        debug_assert!(ev.is_finite(), "Expected finite value for info state {:}, got: {:.2}", info_state, ev);
+
+        ev
     }
 
     pub fn node_exploitability(&self, info_state: &InfoState) -> f64 {
-        let stat_node = self.stat_nodes.get(info_state).unwrap();
-        let br_util = stat_node.br_util;
-        let util = stat_node.rb_weighted_util_sum;
+        let br_util = self.node_br_util(info_state);
+        let util = self.node_util(info_state);
 
-        ((br_util - util) / stat_node.visits as f64) / util.abs() * 100.0
+        for (info_state, _) in &self.stat_nodes {
+            println!("Info state: {:} Util {:.2} BR util {:.2}",
+                info_state, self.node_util(info_state), self.node_br_util(info_state));
+        }
+
+        debug_assert!(br_util >= util,
+            "BR util should be greater than or equal to util: BR: {:.2}, Util: {:.2}", br_util, util);
+        (br_util - util) / util * 100.0
     }
 }
 
@@ -116,7 +137,8 @@ impl<'a, G: Game + Clone> BestReponseVisitor<'a, G> {
 impl<'a, G: Game + Clone> Visitor for BestReponseVisitor<'a, G> {
     fn get_action_probs(&self, node: &Node) -> Vec<f64> {
         if node.player == self.player {
-            let action_utils = self.stat_nodes.get(&node.info_state()).unwrap().action_util_sums.clone();
+            let stat_node = self.stat_nodes.get(&node.info_state()).unwrap();
+            let action_utils = stat_node.action_util_sums.clone();
             let i = Utils::arg_max(&action_utils);
             let mut action_probs = vec![0.0; node.actions.len()];
             action_probs[i] = 1.0;
