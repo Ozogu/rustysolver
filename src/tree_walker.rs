@@ -44,7 +44,7 @@ impl TreeWalker {
 
             // When OOP is the one completing the street,
             // node util from next action is positive.
-            let sign = if node.player == Player::IP { 1.0 } else { -1.0 };
+            let sign = if node.player == Player::IP { -1.0 } else { 1.0 };
             match method {
                 WalkMethod::MonteCarlo => {
                     let card = node.deck.draw().unwrap();
