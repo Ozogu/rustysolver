@@ -38,7 +38,7 @@ fn test_kuhn_poker_ev() {
 // fn test_leduc_poker_ev() {
 //     let mut cfr = CFR::new(Leduc::new());
 //     let ev = cfr.train_for_iters(12000);
-//     let ideal_ev = 0.0;
+//     let ideal_ev = -0.3509;
 //     let ev_diff = (ev - ideal_ev).abs();
 
 //     cfr.print_strategy();
