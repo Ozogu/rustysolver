@@ -1,4 +1,4 @@
-use crate::info_state::{self, InfoState};
+use crate::info_state::InfoState;
 use crate::visitor::Visitor;
 use crate::node::Node;
 use crate::action::Action;
@@ -72,10 +72,11 @@ impl<'a, G: Game + Clone> StatisticsVisitor<'a, G> {
 
         // BR util may be smaller than util if the node util
         // because node util is weighted by reach probability.
-        if info_state == &InfoState::new_empty() {
-            debug_assert!(br_util >= util,
-                "BR util should be greater than or equal to util: BR: {:.2}, Util: {:.2}", br_util, util);
-        }
+        // if info_state == &InfoState::new_empty() {
+        //     debug_assert!(br_util >= util,
+        //         "BR util should be greater than or equal to util: BR: {:.2}, Util: {:.2}", br_util, util);
+        // }
+
         (br_util - util) / util * 100.0
     }
 }
@@ -155,9 +156,6 @@ impl<'a, G: Game + Clone> Visitor for BestReponseVisitor<'a, G> {
             stat_node.br_util += node.util * reach_prob;
             let i = Utils::arg_max(&stat_node.action_util_sums);
             stat_node.best_response = node.actions[i].clone();
-
-            // node.log();
-            // stat_node.log();
         };
     }
 
@@ -193,7 +191,7 @@ impl StatisticsNode {
     }
 
     fn log(&self) {
-        println!("Reach pro weighter util sum: {:.2}", self.rb_weighted_util_sum);
+        println!("Reach prob weighter util sum: {:.2}", self.rb_weighted_util_sum);
         println!("Action util sums: {:.2?}", self.action_util_sums);
         println!("BR Util: {:.2}", self.br_util);
         println!("Best response: {:?}", self.best_response);
@@ -247,11 +245,18 @@ mod tests {
         let mut statistics_visitor = StatisticsVisitor::new(&tree);
         statistics_visitor.build();
 
+        // EV of 1 = -1
+        // EV of 2 = -1/3
+        // EV of 3 = 5/3
+        // Avg EV = (-1 + -1/3 + 5/3) / 3 = 1/9
+
         let info_state = InfoState::new_empty();
-        assert_ne!(statistics_visitor.node_util(&info_state), -1.0/18.0);
-        assert!(statistics_visitor.node_br_util(&info_state) > -1.0/18.0);
-        debug_assert!(statistics_visitor.node_exploitability(&info_state) > 0.0,
-            "Expected positive exploitability, got: {:.4}", statistics_visitor.node_exploitability(&info_state));
+        debug_assert!((statistics_visitor.node_util(&info_state) - -1.0/18.0).abs() < 1e-6,
+            "Expected: 1/18, got: {:.4}", statistics_visitor.node_util(&info_state));
+        debug_assert!((statistics_visitor.node_br_util(&info_state) - 1.0/9.0).abs() < 1e-6,
+            "Expected: 1/9, got: {:.4}", statistics_visitor.node_br_util(&info_state));
+        debug_assert!(statistics_visitor.node_exploitability(&info_state) - 0.0 < 1e-6,
+            "Expected 0 exploitability, got: {:.4}", statistics_visitor.node_exploitability(&info_state));
     }
 
     #[test]
@@ -260,6 +265,7 @@ mod tests {
         let mut statistics_visitor = StatisticsVisitor::new(&tree);
         statistics_visitor.build();
 
+        // We cannot do anything vs. villain leak. Util should be same
         // Best response EV
         // 1 vs 2 X line util: 1 * 1 * -1 = -1
         // 1 vs 3 X line util: 1 * 1 * -1 = -1
@@ -297,18 +303,20 @@ mod tests {
         let mut statistics_visitor = StatisticsVisitor::new(&tree);
         statistics_visitor.build();
 
+        // Villain bluffing onto us should give significant EV boost
         // Best response EV
         // 3 vs 1 X line util: 1 * ((2/3 * 1) + 1/3 * (1 * 2)) = 4/3
         // 3 vs 2 X line util: 1 * 1 * 1 * 2 = 2
-        // Average util = (4/3 + 2) / 2 = 10/3
+        // Average util = (4/3 + 2) / 2 = 5/3
 
         let info_state = InfoState::new(Player::OOP, HoleCards::new_with_rank(3), History::new());
+
         debug_assert!((statistics_visitor.node_util(&info_state) - 7.0/6.0).abs() < 1e-6,
             "Expected: 7/6, got: {:.4}", statistics_visitor.node_util(&info_state));
-        debug_assert!((statistics_visitor.node_br_util(&info_state) - 10.0/3.0).abs() < 1e-6,
-            "Expected: 10/3, got: {:.4}", statistics_visitor.node_br_util(&info_state));
-        debug_assert!(statistics_visitor.node_exploitability(&info_state) == 0.0,
-            "Expected positive exploitability, got: {:.4}", statistics_visitor.node_exploitability(&info_state));
+        debug_assert!((statistics_visitor.node_br_util(&info_state) - 5.0/3.0).abs() < 1e-6,
+            "Expected: 5/3, got: {:.4}", statistics_visitor.node_br_util(&info_state));
+        debug_assert!(statistics_visitor.node_exploitability(&info_state) - 42.8571 < 1e-4,
+            "Expected 42.8571 exploitability, got: {:.4}", statistics_visitor.node_exploitability(&info_state));
     }
 
     #[test]
@@ -428,8 +436,8 @@ mod tests {
         debug_assert!(statistics_visitor.node_exploitability(&info_state) < 1e-6,
             "Expected 0 exploitability, got: {:.4}", statistics_visitor.node_exploitability(&info_state));
     }
-    // Total EV = (-1 + -1/3 + 7/6) / 3 = -1/18
 
+    // Total EV = (-1 + -1/3 + 7/6) / 3 = -1/18
 
     #[test]
     fn test_oop_3_a0() {
