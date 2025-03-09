@@ -3,6 +3,7 @@ use crate::info_state::InfoState;
 use crate::game::Game;
 use crate::build_visitor::BuilderVisitor;
 use crate::tree_walker::TreeWalker;
+use crate::tree_print_visitor::TreePrintVisitor;
 
 pub struct GameTree<G: Game + Clone> {
     pub regrets: HashMap<InfoState, Vec<f64>>,
@@ -26,9 +27,10 @@ impl<G: Game + Clone> GameTree<G> {
     }
 
     pub fn print_tree(&self) {
-        for (info_state, _) in self.regrets.iter() {
-            println!("{}", info_state);
-        }
+        let mut visitor = TreePrintVisitor::new(&self);
+        TreeWalker::walk_tree(&self.game, &mut visitor);
+
+        visitor.print();
     }
 
     pub fn average_strategy(&self, info_state: &InfoState) -> Vec<f64> {

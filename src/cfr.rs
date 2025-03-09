@@ -5,7 +5,6 @@ use crate::cfr_visitor::CfrVisitor;
 use crate::game_tree::GameTree;
 use crate::info_state::InfoState;
 use crate::tree_walker::TreeWalker;
-use crate::tree_print_visitor::TreePrintVisitor;
 use crate::statistics_visitor::StatisticsVisitor;
 
 pub struct CFR<G: Game + Clone> {
@@ -54,10 +53,7 @@ impl<G: Game + Clone> CFR<G> {
     }
 
     pub fn print_strategy(&mut self) {
-        let mut visitor = TreePrintVisitor::new(&self.tree);
-        TreeWalker::walk_tree(&self.game, &mut visitor);
-
-        visitor.print();
+        self.tree.print_tree();
     }
 
     pub fn build_statistics(&self) -> StatisticsVisitor<G> {
