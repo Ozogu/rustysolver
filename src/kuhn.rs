@@ -30,10 +30,6 @@ impl Game for Kuhn {
         1
     }
 
-    fn num_hole_cards(&self) -> u8 {
-        1
-    }
-
     fn deck(&self) -> Deck {
         Deck::new_from_cards(vec![
             Card::new(1, Suit::Diamonds),

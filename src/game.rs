@@ -17,7 +17,6 @@ pub trait Game {
     fn deal(&self, rng: &mut StdRng) -> Deal;
 
     fn num_streets(&self) -> u8;
-    fn num_hole_cards(&self) -> u8;
 
     fn shuffled_cards(&self, rng: &mut StdRng) -> Deck {
         let mut cards = self.deck();

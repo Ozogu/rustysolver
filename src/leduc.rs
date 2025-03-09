@@ -43,10 +43,6 @@ impl Game for Leduc {
         2
     }
 
-    fn num_hole_cards(&self) -> u8 {
-        1
-    }
-
     fn legal_actions(&self, history: &History) -> Vec<Action> {
         let last = history.last().unwrap_or(&HistoryNode::Action(Action::Check));
         let default = vec![Action::Check, Action::Bet(Bet::C(2)), Action::Bet(Bet::C(4))];
@@ -61,7 +57,6 @@ impl Game for Leduc {
             Action::Raise(_) => vec![Action::Fold, Action::Call],
             _ => vec![],
         }
-
     }
 
     fn legal_first_actions(&self) -> Vec<Action> {
