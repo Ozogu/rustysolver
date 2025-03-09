@@ -108,17 +108,14 @@ impl Node {
 
     pub fn log(&self) {
         println!("Info state: {:}", self.info_state());
-        println!("Player: {:}", self.player);
-        println!("Reach prob: {:?}", self.reach_prob);
-        println!("Pot: {:?}", self.pot);
-        println!("History: {:}", self.history);
-        println!("Player cards: {:}", self.player_cards());
         println!("Opponent cards: {:}", self.opponent_cards());
+        println!("Reach prob: {:.2?}", self.reach_prob);
+        println!("Pot: {:?}", self.pot);
         println!("Deck: {:}", self.deck);
-        println!("Util: {:}", self.util);
+        println!("Util: {:.3}", self.util);
         println!("Actions: {:?}", self.actions);
-        println!("Action utils: {:?}", self.action_utils);
-        println!("Action probs: {:?}", self.action_probs);
+        println!("Action utils: {:.2?}", self.action_utils);
+        println!("Action probs: {:.2?}", self.action_probs);
         println!("-----------------");
     }
 }
