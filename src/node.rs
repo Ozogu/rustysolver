@@ -52,6 +52,10 @@ impl Node {
         self.history.is_completing_action()
     }
 
+    pub fn reach_prob(&self) -> f64 {
+        self.reach_prob[&self.player] * self.reach_prob[&self.player.opponent()]
+    }
+
     pub fn player_reach_prob(&self) -> f64 {
         self.reach_prob[&self.player]
     }

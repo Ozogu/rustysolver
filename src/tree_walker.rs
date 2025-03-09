@@ -3,6 +3,7 @@ use crate::info_state::InfoState;
 use crate::node::Node;
 use crate::player::Player;
 use crate::visitor::Visitor;
+use crate::utils::Utils;
 use rand::rngs::StdRng;
 use rand::SeedableRng;
 
@@ -35,6 +36,12 @@ impl TreeWalker {
     }
 
     fn iterate_tree<G: Game, V: Visitor>(game: &G, mut node: Node, rng: &mut StdRng, method: &WalkMethod, visitor: &mut V) -> f64 {
+        // FIXME: Tests will break with this optimization
+        // If it's very unlikely that we reach this node
+        // if node.reach_prob() < 0.001 {
+        //     return 0.0;
+        // }
+
         if node.is_terminal(game) {
             visitor.visit_terminal_node(&node);
 
@@ -66,15 +73,28 @@ impl TreeWalker {
         } else {
             node.action_probs = visitor.get_action_probs(&node);
 
-            // TODO: implement walk methods
-            for i in 0..node.actions.len() {
-                let next_node = node.next_action_node(
-                    game,
-                    node.actions[i].clone(),
-                    node.action_probs[i]);
+            match method {
+                WalkMethod::MonteCarlo => {
+                    let idx = Utils::choose(&node.action_probs, rng);
+                    let next_node = node.next_action_node(
+                        game,
+                        node.actions[idx].clone(),
+                        node.action_probs[idx]);
 
-                node.action_utils[i] = -Self::iterate_tree(game, next_node, rng, method, visitor);
-                node.util += node.action_probs[i] * node.action_utils[i];
+                    node.action_utils[idx] = -Self::iterate_tree(game, next_node, rng, method, visitor);
+                    node.util += node.action_probs[idx] * node.action_utils[idx];
+                }
+                WalkMethod::Full => {
+                    for i in 0..node.actions.len() {
+                        let next_node = node.next_action_node(
+                            game,
+                            node.actions[i].clone(),
+                            node.action_probs[i]);
+
+                        node.action_utils[i] = -Self::iterate_tree(game, next_node, rng, method, visitor);
+                        node.util += node.action_probs[i] * node.action_utils[i];
+                    }
+                }
             }
 
             visitor.visit_action_node(&node);
