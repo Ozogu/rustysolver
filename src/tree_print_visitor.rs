@@ -25,6 +25,8 @@ impl<'a, G: Game + Clone> TreePrintVisitor<'a, G> {
             info_state.history.clone(),
         ));
 
+        self.lines.dedup_by_key(|(info_state, _)| info_state.clone());
+
         for (_, line) in &self.lines {
             println!("{:}", line);
         }
