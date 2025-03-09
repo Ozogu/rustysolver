@@ -83,6 +83,8 @@ impl<'a, G: Game + Clone> StatisticsVisitor<'a, G> {
 
 impl<'a, G: Game + Clone> Visitor for StatisticsVisitor<'a, G> {
     fn visit_root_node(&mut self, info_state: &InfoState, util: f64) {
+        debug_assert!(util.is_finite(), "Expected finite value for info state {:}, got: {:.2}", info_state, util);
+
         let stat_node = self.stat_nodes.entry(info_state.clone()).or_insert(
             StatisticsNode::new(0));
 
@@ -105,6 +107,7 @@ impl<'a, G: Game + Clone> Visitor for StatisticsVisitor<'a, G> {
 }
 
 fn update_node(stat_node: &mut StatisticsNode, node: &Node) {
+    debug_assert!(node.util.is_finite(), "Expected finite value for node {:}, got: {:.2}", node.info_state(), node.util);
     let reach_prob = node.player_reach_prob() * node.opponent_reach_prob();
 
     // Only update visits if the node is reached.

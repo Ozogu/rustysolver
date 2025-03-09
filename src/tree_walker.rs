@@ -79,6 +79,7 @@ impl TreeWalker {
 
             visitor.visit_action_node(&node);
 
+            debug_assert!(node.util.is_finite(), "Node util in info state {} is not finite", node.info_state());
             return node.util;
         }
     }
