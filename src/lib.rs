@@ -29,3 +29,6 @@ pub mod tree_print_visitor;
 pub mod statistics_visitor;
 pub mod ideal_kuhn_builder_visitor;
 pub mod utils;
+pub mod postflop_holdem;
+pub mod range;
+pub mod postflop_holdem_config;
