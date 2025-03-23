@@ -1,17 +1,25 @@
 use crate::hole_cards::HoleCards;
 
 pub struct Range {
-    range: Vec<HoleCards>,
+    pub range: Vec<(f64, HoleCards)>,
 }
 
 impl Range {
-    pub fn new(range: Vec<HoleCards>) -> Self {
+
+    pub fn new_pure_range(range: Vec<HoleCards>) -> Self {
+        let mut pure_range = Vec::new();
+        for hole_cards in range {
+            pure_range.push((1.0, hole_cards));
+        }
+
         Range {
-            range,
+            range: pure_range,
         }
     }
 
-    pub fn range(&self) -> &Vec<HoleCards> {
-        &self.range
+    pub fn new(range: Vec<(f64, HoleCards)>) -> Self {
+        Range {
+            range,
+        }
     }
 }
