@@ -1,5 +1,7 @@
 use crate::hole_cards::HoleCards;
 use std::collections::HashMap;
+
+#[derive(Clone, Debug)]
 pub struct Range {
     pub range: HashMap<HoleCards, f64>,
 }

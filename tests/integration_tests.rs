@@ -2,6 +2,8 @@ use rustysolver::cfr::CFR;
 use rustysolver::info_state::InfoState;
 use rustysolver::kuhn::Kuhn;
 use rustysolver::leduc::Leduc;
+use rustysolver::postflop_holdem::PostflopHoldem;
+use rustysolver::postflop_holdem_config::PostflopHoldemConfig;
 
 #[test]
 fn test_kuhn_poker_ev() {
@@ -47,3 +49,9 @@ fn test_kuhn_poker_ev() {
 //         "EV: {:.4}, Ideal: {:.4}, Diff: {:.4}",
 //         ev, ideal_ev, ev_diff);
 // }
+
+#[test]
+fn test_postflop_holdem_ev() {
+    let mut cfr = CFR::new(PostflopHoldem::new(PostflopHoldemConfig::new_default()));
+    let ev = cfr.train_for_iters(1);
+}
