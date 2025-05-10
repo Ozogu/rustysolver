@@ -17,6 +17,18 @@ impl Card {
         assert!(rank >= 1 && rank <= 14);
         Card { rank, suit: Suit::Diamonds }
     }
+
+    pub fn rank_from_char(c: char) -> u8 {
+        match c {
+            'A' => 14,
+            'K' => 13,
+            'Q' => 12,
+            'J' => 11,
+            'T' => 10,
+            '2'..='9' => c.to_digit(10).unwrap() as u8,
+            _ => panic!("Invalid rank character: {}", c),
+        }
+    }
 }
 
 impl fmt::Display for Card {
@@ -82,5 +94,17 @@ mod tests {
         let c1 = Card::new(2, Suit::Spades);
         let c2 = Card::new(2, Suit::Spades);
         assert_eq!(c1, c2);
+    }
+
+    #[test]
+    fn test_rank_from_char() {
+        assert_eq!(Card::rank_from_char('A'), 14);
+        assert_eq!(Card::rank_from_char('K'), 13);
+        assert_eq!(Card::rank_from_char('Q'), 12);
+        assert_eq!(Card::rank_from_char('J'), 11);
+        assert_eq!(Card::rank_from_char('T'), 10);
+        assert_eq!(Card::rank_from_char('2'), 2);
+        assert_eq!(Card::rank_from_char('9'), 9);
+        assert!(std::panic::catch_unwind(|| Card::rank_from_char('X')).is_err());
     }
 }
