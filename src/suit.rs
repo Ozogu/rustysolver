@@ -64,6 +64,10 @@ impl Suit {
             _ => panic!("Invalid suit: {}", s),
         }
     }
+
+    pub fn from_char(c: char) -> Self {
+        Self::from_str(&c.to_string())
+    }
 }
 
 impl PartialOrd for Suit {
