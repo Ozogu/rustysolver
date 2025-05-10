@@ -75,6 +75,12 @@ impl Range {
         Range { range }
     }
 
+    pub fn extend(&mut self, other: &Range) {
+        for (hole_cards, weight) in &other.range {
+            self.range.insert(hole_cards.clone(), *weight);
+        }
+    }
+
     pub fn iter(&self) -> RangeIter {
         RangeIter {
             iter: self.range.iter(),
@@ -99,5 +105,18 @@ mod tests {
         assert_eq!(range.range[&HoleCards::new(&Card::new(12, Suit::Offsuit), &Card::new(12, Suit::Offsuit))], 1.0);
         assert_eq!(range.range[&HoleCards::new(&Card::new(14, Suit::Offsuit), &Card::new(12, Suit::Offsuit))], 0.2);
         assert_eq!(range.range[&HoleCards::new(&Card::new(14, Suit::Suited), &Card::new(13, Suit::Suited))], 1.0);
+    }
+
+
+    #[test]
+    fn test_extend() {
+        let mut range1 = Range::new(vec![(1.0, HoleCards::new(&Card::new(14, Suit::Hearts), &Card::new(14, Suit::Diamonds)))]);
+
+        let range2 = Range::new(vec![(0.5, HoleCards::new(&Card::new(13, Suit::Hearts), &Card::new(13, Suit::Diamonds)))]);
+        range1.extend(&range2);
+
+        assert_eq!(range1.range.len(), 2);
+        assert_eq!(range1.range[&HoleCards::new(&Card::new(14, Suit::Hearts), &Card::new(14, Suit::Diamonds))], 1.0);
+        assert_eq!(range1.range[&HoleCards::new(&Card::new(13, Suit::Hearts), &Card::new(13, Suit::Diamonds))], 0.5);
     }
 }
