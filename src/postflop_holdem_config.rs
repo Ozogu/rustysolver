@@ -6,6 +6,7 @@ use crate::range::Range;
 use crate::suit::Suit;
 use crate::card::Card;
 
+#[derive(Clone, Debug)]
 pub struct PostflopHoldemConfig {
     pub player_range: HashMap<Player, Range>,
     pub flop: Board,
@@ -33,10 +34,10 @@ impl PostflopHoldemConfig {
             initial_pot: 53.0,
             effective_stack: 74.0,
             flop: Board::from_vec(vec![Card::new(14, Suit::Diamonds), Card::new(11, Suit::Clubs), Card::new(2, Suit::Hearts)]),
-            flop_sizes: vec![Bet::P(20)],
-            turn_sizes: vec![Bet::P(50)],
-            river_sizes: vec![Bet::P(100)],
-            default_size: Bet::P(30),
+            flop_sizes: vec![Bet::P(25)],
+            turn_sizes: vec![Bet::P(125)],
+            river_sizes: vec![Bet::P(200)],
+            default_size: Bet::P(100),
         }
     }
 }
