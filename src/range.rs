@@ -6,6 +6,27 @@ pub struct Range {
     pub range: HashMap<HoleCards, f64>,
 }
 
+pub struct RangeIter<'a> {
+    iter: std::collections::hash_map::Iter<'a, HoleCards, f64>,
+}
+
+impl<'a> Iterator for RangeIter<'a> {
+    type Item = (&'a HoleCards, &'a f64);
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.iter.next()
+    }
+}
+
+impl<'a> IntoIterator for &'a Range {
+    type Item = (&'a HoleCards, &'a f64);
+    type IntoIter = RangeIter<'a>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.iter()
+    }
+}
+
 impl Range {
     pub fn new_pure_range(range: Vec<HoleCards>) -> Self {
         let mut range_map = HashMap::new();
@@ -53,7 +74,14 @@ impl Range {
 
         Range { range }
     }
+
+    pub fn iter(&self) -> RangeIter {
+        RangeIter {
+            iter: self.range.iter(),
+        }
+    }
 }
+
 #[cfg(test)]
 mod tests {
     use crate::card::Card;
