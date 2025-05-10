@@ -127,19 +127,20 @@ mod tests {
     use crate::history::History;
     use crate::hole_cards::HoleCards;
     use crate::info_state::InfoState;
+    use crate::player::Player;
 
     #[test]
     fn test_build_ideal_kuhn_tree() {
         let visitor = IdealKuhnBuilderVisitor::new();
         let a = visitor.a;
 
-        let mut info_state = InfoState::new(crate::player::Player::OOP, HoleCards::new_with_rank(1), History::new());
+        let mut info_state = InfoState::new(Player::OOP, HoleCards::new_with_ranks(1, 1), History::new());
         assert_eq!(visitor.tree.average_strategy(&info_state), vec![1.0-a, a]);
 
-        info_state.hole_cards = HoleCards::new_with_rank(2);
+        info_state.hole_cards = HoleCards::new_with_ranks(2, 2);
         assert_eq!(visitor.tree.average_strategy(&info_state), vec![1.0, 0.0]);
 
-        info_state.hole_cards = HoleCards::new_with_rank(3);
+        info_state.hole_cards = HoleCards::new_with_ranks(3, 3);
         assert_eq!(visitor.tree.average_strategy(&info_state), vec![1.0-3.0*a, 3.0*a]);
     }
 }

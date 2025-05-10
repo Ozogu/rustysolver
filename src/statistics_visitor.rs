@@ -218,7 +218,7 @@ mod tests {
     fn create_exploitable_IP_2_strategy() -> GameTree<Kuhn> {
         let mut tree: GameTree<Kuhn> = IdealKuhnBuilderVisitor::new().tree;
         // Create suboptimal strategy for player 1
-        let cards2 = InfoState::new(Player::IP, HoleCards::new_with_rank(2),
+        let cards2 = InfoState::new(Player::IP, HoleCards::new_with_ranks(2, 2),
             History::new_from_vec(vec![HistoryNode::Action(Action::Check)]));
         *tree.strategy_sum.get_mut(&cards2).unwrap() = vec![0.0, 1.0];
 
@@ -274,7 +274,7 @@ mod tests {
         // 1 vs 3 X line util: 1 * 1 * -1 = -1
         // Average util = (-1 + -1) / 2 = -1
 
-        let info_state = InfoState::new(Player::OOP, HoleCards::new_with_rank(1), History::new());
+        let info_state = InfoState::new(Player::OOP, HoleCards::new_with_ranks(1, 1), History::new());
         debug_assert!((statistics_visitor.node_util(&info_state) - -1.0).abs() < 1e-6,
             "Expected: -1.0, got: {:.4}", statistics_visitor.node_util(&info_state));
         debug_assert!((statistics_visitor.node_br_util(&info_state) - -1.0).abs() < 1e-6,
@@ -291,7 +291,7 @@ mod tests {
 
         // Nothing changed in this part of the tree, should be same as ideal.
 
-        let info_state = InfoState::new(Player::OOP, HoleCards::new_with_rank(2), History::new());
+        let info_state = InfoState::new(Player::OOP, HoleCards::new_with_ranks(2, 2), History::new());
         debug_assert!((statistics_visitor.node_util(&info_state) - -1.0/3.0).abs() < 1e-6,
             "Expected: -1/3, got: {:.4}", statistics_visitor.node_util(&info_state));
         debug_assert!((statistics_visitor.node_br_util(&info_state) - -1.0/3.0).abs() < 1e-6,
@@ -312,7 +312,7 @@ mod tests {
         // 3 vs 2 X line util: 1 * 1 * 1 * 2 = 2
         // Average util = (4/3 + 2) / 2 = 5/3
 
-        let info_state = InfoState::new(Player::OOP, HoleCards::new_with_rank(3), History::new());
+        let info_state = InfoState::new(Player::OOP, HoleCards::new_with_ranks(3, 3), History::new());
 
         debug_assert!((statistics_visitor.node_util(&info_state) - 7.0/6.0).abs() < 1e-6,
             "Expected: 7/6, got: {:.4}", statistics_visitor.node_util(&info_state));
@@ -329,12 +329,12 @@ mod tests {
         statistics_visitor.build();
 
         let mut ev = 0.0;
-        let mut info_state = InfoState::new(Player::OOP, HoleCards::new_with_rank(1), History::new());
+        let mut info_state = InfoState::new(Player::OOP, HoleCards::new_with_ranks(1, 1), History::new());
 
         ev += statistics_visitor.node_util(&info_state.clone());
-        info_state.hole_cards = HoleCards::new_with_rank(2);
+        info_state.hole_cards = HoleCards::new_with_ranks(2, 2);
         ev += statistics_visitor.node_util(&info_state.clone());
-        info_state.hole_cards = HoleCards::new_with_rank(3);
+        info_state.hole_cards = HoleCards::new_with_ranks(3, 3);
         ev += statistics_visitor.node_util(&info_state.clone());
 
         // Each card will return average utility of 2 nodes.
@@ -351,7 +351,7 @@ mod tests {
         let mut statistics_visitor = StatisticsVisitor::new(&tree);
         statistics_visitor.build();
 
-        let info_state = InfoState::new(Player::OOP, HoleCards::new_with_rank(1), History::new_from_vec(
+        let info_state = InfoState::new(Player::OOP, HoleCards::new_with_ranks(1, 1), History::new_from_vec(
             vec![HistoryNode::Action(Action::Check), HistoryNode::Action(Action::Bet(Bet::P(50)))]));
 
         debug_assert!((statistics_visitor.node_util(&info_state) - (-2.0/3.0)).abs() < 1e-6,
@@ -364,7 +364,7 @@ mod tests {
         let mut statistics_visitor = StatisticsVisitor::new(&tree);
         statistics_visitor.build();
 
-        let info_state = InfoState::new(Player::OOP, HoleCards::new_with_rank(1), History::new());
+        let info_state = InfoState::new(Player::OOP, HoleCards::new_with_ranks(1, 1), History::new());
 
         // a = 1/3
         // 1 vs 2 B line util: a * ((2/3 * 1) + (1/3 * -2)) = 0
@@ -392,7 +392,7 @@ mod tests {
         let mut statistics_visitor = StatisticsVisitor::new(&tree);
         statistics_visitor.build();
 
-        let info_state = InfoState::new(Player::OOP, HoleCards::new_with_rank(2), History::new());
+        let info_state = InfoState::new(Player::OOP, HoleCards::new_with_ranks(2, 2), History::new());
 
         // a = 1/3
         // 2 vs 1 B line util: 1 * (2/3 * 1) + (1/3 * ((2/3 - a) * -1 + (a + 1/3) * 2)) = 1
@@ -419,7 +419,7 @@ mod tests {
         let mut statistics_visitor = StatisticsVisitor::new(&tree);
         statistics_visitor.build();
 
-        let info_state = InfoState::new(Player::OOP, HoleCards::new_with_rank(3), History::new());
+        let info_state = InfoState::new(Player::OOP, HoleCards::new_with_ranks(3, 3), History::new());
 
         // a = 1/3
         // 3 vs 1 B line util: 3*a * (1 * 1) = 1
@@ -448,7 +448,7 @@ mod tests {
         let mut statistics_visitor = StatisticsVisitor::new(&tree);
         statistics_visitor.build();
 
-        let info_state = InfoState::new(Player::OOP, HoleCards::new_with_rank(3), History::new());
+        let info_state = InfoState::new(Player::OOP, HoleCards::new_with_ranks(3, 3), History::new());
 
         // a = 0
         // 3 vs 1 B line util: 3*a * (1 * 1) = 0

@@ -58,11 +58,11 @@ impl Game for Kuhn {
 
         for _ in 0..deck.len() {
             let card = deck.draw().unwrap().rank;
-            let cards1 = HoleCards::new_with_rank(card);
+            let cards1 = HoleCards::new_with_ranks(card, card);
             let mut deck_clone = deck.clone();
             for _ in 0..deck_clone.len() {
                 let card = deck_clone.draw().unwrap().rank;
-                let cards2 = HoleCards::new_with_rank(card);
+                let cards2 = HoleCards::new_with_ranks(card, card);
 
                 let deal1 = Deal::new(PlayerCards::new(cards1.clone(), cards2.clone()), deck_clone.clone());
                 let deal2 = Deal::new(PlayerCards::new(cards2.clone(), cards1.clone()), deck_clone.clone());
@@ -80,8 +80,8 @@ impl Game for Kuhn {
         let card1 = deck.draw().unwrap();
         let card2 = deck.draw().unwrap();
 
-        let ip_cards = HoleCards::new_with_rank(card1.rank);
-        let oop_cards = HoleCards::new_with_rank(card2.rank);
+        let ip_cards = HoleCards::new_with_ranks(card1.rank, card1.rank);
+        let oop_cards = HoleCards::new_with_ranks(card2.rank, card2.rank);
         let cards = PlayerCards::new(ip_cards, oop_cards);
 
         Deal::new(cards, deck)
@@ -126,7 +126,7 @@ mod tests {
     fn test_player_wins_xx() {
         let kuhn = Kuhn::new();
         let deal = Deal::new(
-            PlayerCards::new(HoleCards::new_with_rank(1), HoleCards::new_with_rank(2)),
+            PlayerCards::new(HoleCards::new_with_ranks(1, 1), HoleCards::new_with_ranks(2, 2)),
             Deck::new_empty()
         );
         let node = Node::new(&kuhn, deal);
@@ -139,7 +139,7 @@ mod tests {
     fn test_player_wins_xbf() {
         let kuhn = Kuhn::new();
         let deal = Deal::new(
-            PlayerCards::new(HoleCards::new_with_rank(1), HoleCards::new_with_rank(2)),
+            PlayerCards::new(HoleCards::new_with_ranks(1, 1), HoleCards::new_with_ranks(2, 2)),
             Deck::new_empty()
         );
         let node = Node::new(&kuhn, deal);
@@ -153,7 +153,7 @@ mod tests {
     fn test_player_wins_xbc() {
         let kuhn = Kuhn::new();
         let deal = Deal::new(
-            PlayerCards::new(HoleCards::new_with_rank(1), HoleCards::new_with_rank(2)),
+            PlayerCards::new(HoleCards::new_with_ranks(1, 1), HoleCards::new_with_ranks(2, 2)),
             Deck::new_empty()
         );
         let node = Node::new(&kuhn, deal);
@@ -167,7 +167,7 @@ mod tests {
     fn test_player_wins_bf() {
         let kuhn = Kuhn::new();
         let deal = Deal::new(
-            PlayerCards::new(HoleCards::new_with_rank(1), HoleCards::new_with_rank(2)),
+            PlayerCards::new(HoleCards::new_with_ranks(1, 1), HoleCards::new_with_ranks(2, 2)),
             Deck::new_empty()
         );
         let node = Node::new(&kuhn, deal);
@@ -180,7 +180,7 @@ mod tests {
     fn test_player_wins_bc() {
         let kuhn = Kuhn::new();
         let deal = Deal::new(
-            PlayerCards::new(HoleCards::new_with_rank(1), HoleCards::new_with_rank(2)),
+            PlayerCards::new(HoleCards::new_with_ranks(1, 1), HoleCards::new_with_ranks(2, 2)),
             Deck::new_empty()
         );
         let node = Node::new(&kuhn, deal);

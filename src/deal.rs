@@ -19,8 +19,8 @@ impl Deal {
     pub fn new_default() -> Self {
         Deal {
             cards: PlayerCards::new(
-                HoleCards::new_with_rank(1),
-                HoleCards::new_with_rank(2),
+                HoleCards::new_with_ranks(1, 1),
+                HoleCards::new_with_ranks(2, 1),
             ),
             deck: Deck::new_empty(),
         }

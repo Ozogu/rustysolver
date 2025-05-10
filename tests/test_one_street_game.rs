@@ -85,8 +85,8 @@ impl Game for OneStreetGame {
     fn generate_deals(&self) -> Vec<Deal> {
         let mut deals = Vec::new();
         deals.push(Deal::new(PlayerCards::new(
-            HoleCards::new_with_rank(1),
-            HoleCards::new_with_rank(2)),
+            HoleCards::new_with_ranks(1, 1),
+            HoleCards::new_with_ranks(2, 2)),
             Deck::new_from_cards(vec![Card::new(3, Suit::Diamonds)]),
         ));
 
@@ -132,7 +132,7 @@ fn test_b_c_ev() {
     let mut visitor = StatisticsVisitor::new(&tree);
     visitor.build();
 
-    let info_state = InfoState::new(Player::OOP, HoleCards::new_with_rank(2), History::new_from_vec(vec![
+    let info_state = InfoState::new(Player::OOP, HoleCards::new_with_ranks(2, 2), History::new_from_vec(vec![
         HistoryNode::Action(Action::Bet(Bet::C(1))),
         HistoryNode::Action(Action::Call),
         HistoryNode::Street(Street::Flop(Board::from_vec(vec![Card::new(3, Suit::Diamonds)]))),
@@ -150,7 +150,7 @@ fn test_b_r_c_ev() {
     let mut visitor = StatisticsVisitor::new(&tree);
     visitor.build();
 
-    let info_state = InfoState::new(Player::OOP, HoleCards::new_with_rank(2), History::new_from_vec(vec![
+    let info_state = InfoState::new(Player::OOP, HoleCards::new_with_ranks(2, 2), History::new_from_vec(vec![
         HistoryNode::Action(Action::Bet(Bet::C(1))),
         HistoryNode::Action(Action::Raise(Bet::C(1))),
         HistoryNode::Action(Action::Call),

@@ -29,6 +29,7 @@ impl CardArray {
     }
 
     pub fn add_card(&mut self, card: &Card) {
+        assert!(card.suit.to_usize() < 4, "Invalid suit {:}", card.suit);
         self.rank_counts[(card.rank - 1) as usize] += 1;
         if card.rank == 14 {
             self.rank_counts[0] += 1;
