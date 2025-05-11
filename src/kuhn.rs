@@ -63,9 +63,10 @@ impl Game for Kuhn {
             for _ in 0..deck_clone.len() {
                 let card = deck_clone.draw().unwrap().rank;
                 let cards2 = HoleCards::new_with_ranks(card, card);
+                let weights = (1.0, 1.0);
 
-                let deal1 = Deal::new(PlayerCards::new(cards1.clone(), cards2.clone()), deck_clone.clone());
-                let deal2 = Deal::new(PlayerCards::new(cards2.clone(), cards1.clone()), deck_clone.clone());
+                let deal1 = Deal::new(PlayerCards::new(cards1.clone(), cards2.clone()), deck_clone.clone(), weights);
+                let deal2 = Deal::new(PlayerCards::new(cards2.clone(), cards1.clone()), deck_clone.clone(), weights);
 
                 deals.push(deal1);
                 deals.push(deal2);
@@ -84,7 +85,7 @@ impl Game for Kuhn {
         let oop_cards = HoleCards::new_with_ranks(card2.rank, card2.rank);
         let cards = PlayerCards::new(ip_cards, oop_cards);
 
-        Deal::new(cards, deck)
+        Deal::new(cards, deck, (1.0, 1.0))
     }
 }
 

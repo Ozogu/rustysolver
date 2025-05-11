@@ -68,7 +68,7 @@ pub trait Game {
                             deck_clone.remove_index(*card_index);
                         }
 
-                        let deal = Deal::new(cards.clone(), deck_clone.clone());
+                        let deal = Deal::new(cards.clone(), deck_clone.clone(), (1.0, 1.0));
                         deals.push(deal);
                     }
                 }

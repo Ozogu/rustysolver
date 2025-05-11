@@ -5,13 +5,16 @@ use crate::hole_cards::HoleCards;
 #[derive(Clone, Debug)]
 pub struct Deal {
     pub cards: PlayerCards,
+    // IP & OOP
+    pub weights: (f64, f64),
     pub deck: Deck,
 }
 
 impl Deal {
-    pub fn new(cards: PlayerCards, deck: Deck) -> Self {
+    pub fn new(cards: PlayerCards, deck: Deck, weights: (f64, f64)) -> Self {
         Deal {
             cards,
+            weights,
             deck,
         }
     }
@@ -22,6 +25,7 @@ impl Deal {
                 HoleCards::new_with_ranks(1, 1),
                 HoleCards::new_with_ranks(2, 1),
             ),
+            weights: (1.0, 1.0),
             deck: Deck::new_empty(),
         }
     }
