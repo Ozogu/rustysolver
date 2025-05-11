@@ -65,8 +65,19 @@ impl Game for Kuhn {
                 let cards2 = HoleCards::new_with_ranks(card, card);
                 let weights = (1.0, 1.0);
 
-                let deal1 = Deal::new(PlayerCards::new(cards1.clone(), cards2.clone()), deck_clone.clone(), weights);
-                let deal2 = Deal::new(PlayerCards::new(cards2.clone(), cards1.clone()), deck_clone.clone(), weights);
+                let deal1 = Deal::new(
+                    PlayerCards::new(cards1.clone(), cards2.clone()),
+                    deck_clone.clone(),
+                    weights,
+                    History::new(),
+                );
+
+                let deal2 = Deal::new(
+                    PlayerCards::new(cards2.clone(), cards1.clone()),
+                    deck_clone.clone(),
+                    weights,
+                    History::new(),
+                );
 
                 deals.push(deal1);
                 deals.push(deal2);
@@ -85,7 +96,7 @@ impl Game for Kuhn {
         let oop_cards = HoleCards::new_with_ranks(card2.rank, card2.rank);
         let cards = PlayerCards::new(ip_cards, oop_cards);
 
-        Deal::new(cards, deck, (1.0, 1.0))
+        Deal::new(cards, deck, (1.0, 1.0), History::new())
     }
 }
 
@@ -129,7 +140,8 @@ mod tests {
         let deal = Deal::new(
             PlayerCards::new(HoleCards::new_with_ranks(1, 1), HoleCards::new_with_ranks(2, 2)),
             Deck::new_empty(),
-            (1.0, 1.0)
+            (1.0, 1.0),
+            History::new()
         );
         let node = Node::new(&kuhn, deal);
         let next_node = node.next_action_node(&kuhn, Action::Check, 1.0);
@@ -143,7 +155,8 @@ mod tests {
         let deal = Deal::new(
             PlayerCards::new(HoleCards::new_with_ranks(1, 1), HoleCards::new_with_ranks(2, 2)),
             Deck::new_empty(),
-            (1.0, 1.0)
+            (1.0, 1.0),
+            History::new()
         );
         let node = Node::new(&kuhn, deal);
         let next_node = node.next_action_node(&kuhn, Action::Check, 1.0);
@@ -158,7 +171,8 @@ mod tests {
         let deal = Deal::new(
             PlayerCards::new(HoleCards::new_with_ranks(1, 1), HoleCards::new_with_ranks(2, 2)),
             Deck::new_empty(),
-            (1.0, 1.0)
+            (1.0, 1.0),
+            History::new()
         );
         let node = Node::new(&kuhn, deal);
         let next_node = node.next_action_node(&kuhn, Action::Check, 1.0);
@@ -173,7 +187,8 @@ mod tests {
         let deal = Deal::new(
             PlayerCards::new(HoleCards::new_with_ranks(1, 1), HoleCards::new_with_ranks(2, 2)),
             Deck::new_empty(),
-            (1.0, 1.0)
+            (1.0, 1.0),
+            History::new()
         );
         let node = Node::new(&kuhn, deal);
         let next_node = node.next_action_node(&kuhn, Action::Bet(Bet::P(50)), 1.0);
@@ -187,7 +202,8 @@ mod tests {
         let deal = Deal::new(
             PlayerCards::new(HoleCards::new_with_ranks(1, 1), HoleCards::new_with_ranks(2, 2)),
             Deck::new_empty(),
-            (1.0, 1.0)
+            (1.0, 1.0),
+            History::new()
         );
         let node = Node::new(&kuhn, deal);
         let next_node = node.next_action_node(&kuhn, Action::Bet(Bet::P(50)), 1.0);

@@ -27,13 +27,13 @@ pub struct Node {
 }
 
 impl Node {
-    pub fn new<G: Game>(game: &G, deal: Deal) -> Node {
+        pub fn new<G: Game>(game: &G, deal: Deal) -> Node {
         let actions = game.legal_first_actions();
         Node {
             actions: actions.clone(),
-            reach_prob: HashMap::from([(Player::IP, 1.0), (Player::OOP, 1.0)]),
+            reach_prob: HashMap::from([(Player::IP, deal.weights.0), (Player::OOP, deal.weights.1)]),
             pot: game.initial_pot(),
-            history: History::new(),
+            history: deal.history,
             player: Player::OOP,
             cards: deal.cards,
             deck: deal.deck,
@@ -133,7 +133,8 @@ mod tests {
         let deal = Deal::new(
             PlayerCards::new(HoleCards::new_with_rank(1), HoleCards::new_with_rank(2)),
             Deck::new_empty(),
-            (1.0, 1.0)
+            (1.0, 1.0),
+            History::new()
         );
         let node = Node::new(&Kuhn::new(), deal);
         assert_eq!(node.reach_prob[&Player::IP], 1.0);
@@ -145,7 +146,8 @@ mod tests {
         let deal = Deal::new(
             PlayerCards::new(HoleCards::new_with_rank(1), HoleCards::new_with_rank(2)),
             Deck::new_empty(),
-            (1.0, 1.0)
+            (1.0, 1.0),
+            History::new()
         );
         let node = Node::new(&Kuhn::new(), deal);
         assert_eq!(node.player_reach_prob(), 1.0);
@@ -166,7 +168,8 @@ mod tests {
         let deal = Deal::new(
             PlayerCards::new(HoleCards::new_with_rank(1), HoleCards::new_with_rank(2)),
             Deck::new_empty(),
-            (1.0, 1.0)
+            (1.0, 1.0),
+            History::new()
         );
         let node = Node::new(&Kuhn::new(), deal);
         let next_node = node.next_action_node(&Kuhn::new(), Action::Bet(Bet::P(50)), 0.5);
@@ -184,7 +187,7 @@ mod tests {
     fn test_player_cards() {
         let ip_cards = HoleCards::new_with_rank(1);
         let oop_cards = HoleCards::new_with_rank(2);
-        let deal = Deal::new(PlayerCards::new(ip_cards.clone(), oop_cards.clone()), Deck::new_empty(), (1.0, 1.0));
+        let deal = Deal::new(PlayerCards::new(ip_cards.clone(), oop_cards.clone()), Deck::new_empty(), (1.0, 1.0), History::new());
         let node = Node::new(&Kuhn::new(), deal);
         assert_eq!(node.player_cards(), oop_cards);
         assert_eq!(node.opponent_cards(), ip_cards);
@@ -199,7 +202,8 @@ mod tests {
         let deal = Deal::new(
             PlayerCards::new(HoleCards::new_with_rank(1), HoleCards::new_with_rank(2)),
             Deck::new_empty(),
-            (1.0, 1.0)
+            (1.0, 1.0),
+            History::new()
         );
         let node = Node::new(&Leduc::new(), deal);
         let next_node = node.next_street_node(&Leduc::new(), Street::Flop(Board::new()));
@@ -217,7 +221,8 @@ mod tests {
         let deal = Deal::new(
             PlayerCards::new(HoleCards::new_with_rank(1), HoleCards::new_with_rank(2)),
             Deck::new_empty(),
-            (1.0, 1.0)
+            (1.0, 1.0),
+            History::new()
         );
         let node = Node::new(&Leduc::new(), deal);
         let next_node = node.next_action_node(&Leduc::new(), Action::Fold, 1.0);

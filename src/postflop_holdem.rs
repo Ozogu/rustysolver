@@ -106,6 +106,7 @@ impl Game for PostflopHoldem {
                         PlayerCards::new(ip_card.0.clone(), oop_card.0.clone()),
                         deck,
                         (*ip_card.1, *oop_card.1),
+                        History::new(),
                     ),
                 );
             }

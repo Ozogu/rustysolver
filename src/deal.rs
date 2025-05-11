@@ -1,6 +1,7 @@
 use crate::deck::Deck;
 use crate::player_cards::PlayerCards;
 use crate::hole_cards::HoleCards;
+use crate::history::History;
 
 #[derive(Clone, Debug)]
 pub struct Deal {
@@ -8,14 +9,16 @@ pub struct Deal {
     // IP & OOP
     pub weights: (f64, f64),
     pub deck: Deck,
+    pub history: History,
 }
 
 impl Deal {
-    pub fn new(cards: PlayerCards, deck: Deck, weights: (f64, f64)) -> Self {
+    pub fn new(cards: PlayerCards, deck: Deck, weights: (f64, f64), history: History) -> Self {
         Deal {
             cards,
             weights,
             deck,
+            history
         }
     }
 
@@ -27,6 +30,7 @@ impl Deal {
             ),
             weights: (1.0, 1.0),
             deck: Deck::new_empty(),
+            history: History::new(),
         }
     }
 }

@@ -89,6 +89,7 @@ impl Game for OneStreetGame {
             HoleCards::new_with_ranks(2, 2)),
             Deck::new_from_cards(vec![Card::new(3, Suit::Diamonds)]),
             (1.0, 1.0),
+            History::new(),
         ));
 
         deals

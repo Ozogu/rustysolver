@@ -74,6 +74,6 @@ impl Game for Leduc {
         let oop_cards = HoleCards::new(&card3, &card4);
         let cards = PlayerCards::new(ip_cards, oop_cards);
 
-        Deal::new(cards, deck, (1.0, 1.0))
+        Deal::new(cards, deck, (1.0, 1.0), History::new())
     }
 }
