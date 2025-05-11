@@ -75,7 +75,11 @@ impl Game for PostflopHoldem {
                 actions.push(Action::Call);
                 actions.extend(self.bets_to_raises(self.sizes_for_street(history.street().clone())));
             }
-            _ => panic!("Invalid action"),
+            Action::None => {
+                actions.push(Action::Check);
+                actions.extend(self.sizes_for_street(history.street().clone()));
+            }
+            _ => ()
         };
 
         actions
