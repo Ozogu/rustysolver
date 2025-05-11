@@ -132,7 +132,8 @@ mod tests {
     fn test_new() {
         let deal = Deal::new(
             PlayerCards::new(HoleCards::new_with_rank(1), HoleCards::new_with_rank(2)),
-            Deck::new_empty()
+            Deck::new_empty(),
+            (1.0, 1.0)
         );
         let node = Node::new(&Kuhn::new(), deal);
         assert_eq!(node.reach_prob[&Player::IP], 1.0);
@@ -143,7 +144,8 @@ mod tests {
     fn test_reach_prob() {
         let deal = Deal::new(
             PlayerCards::new(HoleCards::new_with_rank(1), HoleCards::new_with_rank(2)),
-            Deck::new_empty()
+            Deck::new_empty(),
+            (1.0, 1.0)
         );
         let node = Node::new(&Kuhn::new(), deal);
         assert_eq!(node.player_reach_prob(), 1.0);
@@ -163,7 +165,8 @@ mod tests {
     fn test_next_node() {
         let deal = Deal::new(
             PlayerCards::new(HoleCards::new_with_rank(1), HoleCards::new_with_rank(2)),
-            Deck::new_empty()
+            Deck::new_empty(),
+            (1.0, 1.0)
         );
         let node = Node::new(&Kuhn::new(), deal);
         let next_node = node.next_action_node(&Kuhn::new(), Action::Bet(Bet::P(50)), 0.5);
@@ -181,7 +184,7 @@ mod tests {
     fn test_player_cards() {
         let ip_cards = HoleCards::new_with_rank(1);
         let oop_cards = HoleCards::new_with_rank(2);
-        let deal = Deal::new(PlayerCards::new(ip_cards.clone(), oop_cards.clone()), Deck::new_empty());
+        let deal = Deal::new(PlayerCards::new(ip_cards.clone(), oop_cards.clone()), Deck::new_empty(), (1.0, 1.0));
         let node = Node::new(&Kuhn::new(), deal);
         assert_eq!(node.player_cards(), oop_cards);
         assert_eq!(node.opponent_cards(), ip_cards);
@@ -195,7 +198,8 @@ mod tests {
     fn test_next_street_node() {
         let deal = Deal::new(
             PlayerCards::new(HoleCards::new_with_rank(1), HoleCards::new_with_rank(2)),
-            Deck::new_empty()
+            Deck::new_empty(),
+            (1.0, 1.0)
         );
         let node = Node::new(&Leduc::new(), deal);
         let next_node = node.next_street_node(&Leduc::new(), Street::Flop(Board::new()));
@@ -212,7 +216,8 @@ mod tests {
     fn test_fold_is_terminal_in_2_street_game() {
         let deal = Deal::new(
             PlayerCards::new(HoleCards::new_with_rank(1), HoleCards::new_with_rank(2)),
-            Deck::new_empty()
+            Deck::new_empty(),
+            (1.0, 1.0)
         );
         let node = Node::new(&Leduc::new(), deal);
         let next_node = node.next_action_node(&Leduc::new(), Action::Fold, 1.0);

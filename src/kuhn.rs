@@ -128,7 +128,8 @@ mod tests {
         let kuhn = Kuhn::new();
         let deal = Deal::new(
             PlayerCards::new(HoleCards::new_with_ranks(1, 1), HoleCards::new_with_ranks(2, 2)),
-            Deck::new_empty()
+            Deck::new_empty(),
+            (1.0, 1.0)
         );
         let node = Node::new(&kuhn, deal);
         let next_node = node.next_action_node(&kuhn, Action::Check, 1.0);
@@ -141,7 +142,8 @@ mod tests {
         let kuhn = Kuhn::new();
         let deal = Deal::new(
             PlayerCards::new(HoleCards::new_with_ranks(1, 1), HoleCards::new_with_ranks(2, 2)),
-            Deck::new_empty()
+            Deck::new_empty(),
+            (1.0, 1.0)
         );
         let node = Node::new(&kuhn, deal);
         let next_node = node.next_action_node(&kuhn, Action::Check, 1.0);
@@ -155,7 +157,8 @@ mod tests {
         let kuhn = Kuhn::new();
         let deal = Deal::new(
             PlayerCards::new(HoleCards::new_with_ranks(1, 1), HoleCards::new_with_ranks(2, 2)),
-            Deck::new_empty()
+            Deck::new_empty(),
+            (1.0, 1.0)
         );
         let node = Node::new(&kuhn, deal);
         let next_node = node.next_action_node(&kuhn, Action::Check, 1.0);
@@ -169,7 +172,8 @@ mod tests {
         let kuhn = Kuhn::new();
         let deal = Deal::new(
             PlayerCards::new(HoleCards::new_with_ranks(1, 1), HoleCards::new_with_ranks(2, 2)),
-            Deck::new_empty()
+            Deck::new_empty(),
+            (1.0, 1.0)
         );
         let node = Node::new(&kuhn, deal);
         let next_node = node.next_action_node(&kuhn, Action::Bet(Bet::P(50)), 1.0);
@@ -182,7 +186,8 @@ mod tests {
         let kuhn = Kuhn::new();
         let deal = Deal::new(
             PlayerCards::new(HoleCards::new_with_ranks(1, 1), HoleCards::new_with_ranks(2, 2)),
-            Deck::new_empty()
+            Deck::new_empty(),
+            (1.0, 1.0)
         );
         let node = Node::new(&kuhn, deal);
         let next_node = node.next_action_node(&kuhn, Action::Bet(Bet::P(50)), 1.0);
