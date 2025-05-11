@@ -101,12 +101,14 @@ impl Game for PostflopHoldem {
                 deck.remove(&ip_card.0.card1);
                 deck.remove(&ip_card.0.card2);
 
+                let mut history = History::new();
+                history.push_street(Street::Flop(self.config.flop.clone()));
                 deals.push(
                     Deal::new(
                         PlayerCards::new(ip_card.0.clone(), oop_card.0.clone()),
                         deck,
                         (*ip_card.1, *oop_card.1),
-                        History::new(),
+                        history,
                     ),
                 );
             }
