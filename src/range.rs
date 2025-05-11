@@ -81,6 +81,21 @@ impl Range {
         }
     }
 
+    pub fn expand_meta_suits(&self) -> Range {
+        let mut expanded_range = HashMap::new();
+
+        for (hole_cards, weight) in &self.range {
+            let expanded_hole_cards = hole_cards.expand();
+            for expanded_hole_card in expanded_hole_cards {
+                expanded_range.insert(expanded_hole_card, *weight);
+            }
+        }
+
+        Range {
+            range: expanded_range,
+        }
+    }
+
     pub fn iter(&self) -> RangeIter {
         RangeIter {
             iter: self.range.iter(),
@@ -118,5 +133,49 @@ mod tests {
         assert_eq!(range1.range.len(), 2);
         assert_eq!(range1.range[&HoleCards::new(&Card::new(14, Suit::Hearts), &Card::new(14, Suit::Diamonds))], 1.0);
         assert_eq!(range1.range[&HoleCards::new(&Card::new(13, Suit::Hearts), &Card::new(13, Suit::Diamonds))], 0.5);
+    }
+
+    #[test]
+    fn test_expand_meta_suits() {
+        let range_str = "AhAd:1.0;KhKd:0.5;QQ;AQo:0.2;AKs;72o:0";
+        let range = Range::new_from_string(range_str);
+        let expanded_range = range.expand_meta_suits();
+
+
+        let expected_range = Range::new(vec![
+            (1.0, HoleCards::new(&Card::new(14, Suit::Hearts), &Card::new(14, Suit::Diamonds))),
+
+            (0.5, HoleCards::new(&Card::new(13, Suit::Hearts), &Card::new(13, Suit::Diamonds))),
+
+            (1.0, HoleCards::new(&Card::new(12, Suit::Hearts), &Card::new(12, Suit::Diamonds))),
+            (1.0, HoleCards::new(&Card::new(12, Suit::Hearts), &Card::new(12, Suit::Clubs))),
+            (1.0, HoleCards::new(&Card::new(12, Suit::Hearts), &Card::new(12, Suit::Spades))),
+            (1.0, HoleCards::new(&Card::new(12, Suit::Diamonds), &Card::new(12, Suit::Clubs))),
+            (1.0, HoleCards::new(&Card::new(12, Suit::Diamonds), &Card::new(12, Suit::Spades))),
+            (1.0, HoleCards::new(&Card::new(12, Suit::Clubs), &Card::new(12, Suit::Spades))),
+
+            (0.2, HoleCards::new(&Card::new(14, Suit::Hearts), &Card::new(12, Suit::Diamonds))),
+            (0.2, HoleCards::new(&Card::new(14, Suit::Hearts), &Card::new(12, Suit::Clubs))),
+            (0.2, HoleCards::new(&Card::new(14, Suit::Hearts), &Card::new(12, Suit::Spades))),
+            (0.2, HoleCards::new(&Card::new(14, Suit::Diamonds), &Card::new(12, Suit::Clubs))),
+            (0.2, HoleCards::new(&Card::new(14, Suit::Diamonds), &Card::new(12, Suit::Spades))),
+            (0.2, HoleCards::new(&Card::new(14, Suit::Diamonds), &Card::new(12, Suit::Hearts))),
+            (0.2, HoleCards::new(&Card::new(14, Suit::Clubs), &Card::new(12, Suit::Diamonds))),
+            (0.2, HoleCards::new(&Card::new(14, Suit::Clubs), &Card::new(12, Suit::Spades))),
+            (0.2, HoleCards::new(&Card::new(14, Suit::Clubs), &Card::new(12, Suit::Hearts))),
+            (0.2, HoleCards::new(&Card::new(14, Suit::Spades), &Card::new(12, Suit::Diamonds))),
+            (0.2, HoleCards::new(&Card::new(14, Suit::Spades), &Card::new(12, Suit::Clubs))),
+            (0.2, HoleCards::new(&Card::new(14, Suit::Spades), &Card::new(12, Suit::Hearts))),
+
+            (1.0, HoleCards::new(&Card::new(14, Suit::Hearts), &Card::new(13, Suit::Hearts))),
+            (1.0, HoleCards::new(&Card::new(14, Suit::Diamonds), &Card::new(13, Suit::Diamonds))),
+            (1.0, HoleCards::new(&Card::new(14, Suit::Clubs), &Card::new(13, Suit::Clubs))),
+            (1.0, HoleCards::new(&Card::new(14, Suit::Spades), &Card::new(13, Suit::Spades))),
+        ]);
+
+        assert_eq!(expanded_range.range.len(), expected_range.range.len());
+        for (hole_cards, weight) in expected_range.range {
+            assert_eq!(expanded_range.range[&hole_cards], weight);
+        }
     }
 }
