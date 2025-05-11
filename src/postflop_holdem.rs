@@ -28,7 +28,7 @@ impl PostflopHoldem {
             Street::Flop(_) => self.config.flop_sizes.iter().map(|size| Action::Bet(size.clone())).collect(),
             Street::Turn(_) => self.config.turn_sizes.iter().map(|size| Action::Bet(size.clone())).collect(),
             Street::River(_) => self.config.river_sizes.iter().map(|size| Action::Bet(size.clone())).collect(),
-            _ => panic!("Invalid street"),
+            _ => panic!("Invalid street {}", street.to_string()),
         }
     }
 
