@@ -7,6 +7,7 @@ use crate::history::History;
 use crate::deck::Deck;
 use crate::street::Street;
 use crate::history_node::HistoryNode;
+use crate::player_cards::PlayerCards;
 
 use rand::rngs::StdRng;
 
@@ -85,6 +86,32 @@ impl Game for PostflopHoldem {
         actions.extend(self.config.flop_sizes.iter().map(|size| Action::Bet(size.clone())));
 
         actions
+    }
+
+    fn generate_deals(&self) -> Vec<Deal> {
+        let mut deals = Vec::new();
+        let oop_range = self.config.oop_range().expand_meta_suits();
+        let ip_range = self.config.ip_range().expand_meta_suits();
+
+        for oop_card in &oop_range {
+            for ip_card in &ip_range {
+                let mut deck = self.deck();
+                deck.remove(&oop_card.0.card1);
+                deck.remove(&oop_card.0.card2);
+                deck.remove(&ip_card.0.card1);
+                deck.remove(&ip_card.0.card2);
+
+                deals.push(
+                    Deal::new(
+                        PlayerCards::new(ip_card.0.clone(), oop_card.0.clone()),
+                        deck,
+                        (*ip_card.1, *oop_card.1),
+                    ),
+                );
+            }
+        }
+
+        deals
     }
 
     fn deal(&self, _rng: &mut StdRng) -> Deal {
