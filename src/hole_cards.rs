@@ -11,6 +11,13 @@ pub struct HoleCards {
 
 impl HoleCards {
     pub fn new(card1: &Card, card2: &Card) -> Self {
+        let suit1 = card1.suit;
+        let suit2 = card2.suit;
+        if suit1 == Suit::Offsuit || suit2 == Suit::Offsuit ||
+              suit1 == Suit::Suited || suit2 == Suit::Suited {
+            assert!(card1.suit == card2.suit, "Cards must have the same suit");
+        }
+
         if card1 >= card2 {
             HoleCards {
                 card1: card1.clone(),
@@ -41,6 +48,46 @@ impl HoleCards {
 
     pub fn cards(&self) -> [Card; 2] {
         [self.card1.clone(), self.card2.clone()]
+    }
+
+    pub fn expand(&self) -> Vec<HoleCards> {
+        let suit1 = self.card1.suit;
+        let suit2 = self.card2.suit;
+        if suit1 == Suit::Offsuit && suit2 == Suit::Offsuit {
+            self.expand_offsuit()
+        } else if suit1 == Suit::Suited && suit2 == Suit::Suited {
+            self.expand_suited()
+        } else {
+            vec![self.clone()]
+        }
+    }
+
+    fn expand_offsuit(&self) -> Vec<HoleCards> {
+        let mut hole_cards = Vec::new();
+        for s1 in Suit::to_vec() {
+            for s2 in Suit::to_vec() {
+                if s1 != s2 {
+                    hole_cards.push(HoleCards::new(
+                        &Card::new(self.card1.rank, s1),
+                        &Card::new(self.card2.rank, s2),
+                    ));
+                }
+            }
+        }
+
+        hole_cards
+    }
+
+    fn expand_suited(&self) -> Vec<HoleCards> {
+        let mut hole_cards = Vec::new();
+        for s in Suit::to_vec() {
+            hole_cards.push(HoleCards::new(
+                &Card::new(self.card1.rank, s),
+                &Card::new(self.card2.rank, s),
+            ));
+        }
+
+        hole_cards
     }
 
     pub fn new_from_string(hole_cards_str: &str) -> Self {
@@ -163,5 +210,47 @@ mod tests {
         let hole_cards = HoleCards::new_from_string(hole_cards_str);
         assert_eq!(hole_cards.card1, Card::new(14, Suit::Spades));
         assert_eq!(hole_cards.card2, Card::new(13, Suit::Spades));
+    }
+
+    #[test]
+    #[should_panic(expected = "Cards must have the same suit")]
+    fn test_creating_invalid_hole_cards() {
+        let card1 = Card::new(2, Suit::Offsuit);
+        let card2 = Card::new(1, Suit::Hearts);
+        HoleCards::new(&card1, &card2);
+    }
+
+    #[test]
+    fn test_expand_offsuit() {
+        let hole_cards = HoleCards::new(
+            &Card::new(2, Suit::Offsuit),
+            &Card::new(1, Suit::Offsuit),
+        );
+        let expanded_hole_cards = hole_cards.expand();
+        assert_eq!(expanded_hole_cards.len(), 12);
+        for cards in expanded_hole_cards {
+            assert!(cards.card1.suit != cards.card2.suit);
+            assert!(cards.card1.suit != Suit::Offsuit);
+            assert!(cards.card2.suit != Suit::Offsuit);
+            assert!(cards.card1.suit != Suit::Suited);
+            assert!(cards.card2.suit != Suit::Suited);
+        }
+    }
+
+    #[test]
+    fn test_expand_suited() {
+        let hole_cards = HoleCards::new(
+            &Card::new(2, Suit::Suited),
+            &Card::new(1, Suit::Suited),
+        );
+        let expanded_hole_cards = hole_cards.expand();
+        assert_eq!(expanded_hole_cards.len(), 4);
+        for cards in expanded_hole_cards {
+            assert_eq!(cards.card1.suit, cards.card2.suit);
+            assert!(cards.card1.suit != Suit::Offsuit);
+            assert!(cards.card2.suit != Suit::Offsuit);
+            assert!(cards.card1.suit != Suit::Suited);
+            assert!(cards.card2.suit != Suit::Suited);
+        }
     }
 }
